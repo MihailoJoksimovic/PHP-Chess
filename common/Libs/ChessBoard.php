@@ -218,6 +218,27 @@ class ChessBoard
 					->setLocation(new Coordinates(7, $column));
 		}
 	}
+	
+	/**
+	 * Finds the location where the specified chess piece is located.
+	 * 
+	 * If the piece is found, object of type ChessBoardSquare where the piece is 
+	 * located will be returned. Otherwise, NULL is returned
+	 * 
+	 * @param ChessPiece $chessPiece 
+	 * @return ChessBoardSquare
+	 */
+	public function findChessPiece(ChessPiece $chessPiece)
+	{
+		foreach (range(1, 8) AS $row)
+		{
+			foreach (range('a', 'h') AS $column)
+			{
+				$_square = $this->getSquareByLocation(new Coordinates($row, $column));
+				
+			}
+		}
+	}
 
 
 }
