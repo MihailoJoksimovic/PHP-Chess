@@ -28,6 +28,12 @@ class ChessBoardSquare
 	
 	/**
 	 *
+	 * @var Coordinates
+	 */
+	private $location;
+	
+	/**
+	 *
 	 * @param enum $color Field color (\Enums\Color::WHITE or \Enums\Color::BLACK)
 	 * @param \Libs\ChessPiece $chessPiece Chess piece currently positioned on this field [optional]
 	 */
@@ -87,6 +93,21 @@ class ChessBoardSquare
 		return $this;
 	}
 
+	/**
+	 *
+	 * @return Coordinates
+	 */
+	public function getLocation()
+	{
+		return $this->location;
+	}
+
+	public function setLocation(Coordinates $location)
+	{
+		$this->location = $location;
+
+		return $this;
+	}
 
 	
 }
