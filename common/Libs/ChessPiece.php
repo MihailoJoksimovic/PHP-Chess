@@ -26,6 +26,13 @@ class ChessPiece
 	private $color;
 	
 	/**
+	 * Total number of movements this piece has made (0 means this piece hasn't moved yet)
+	 * 
+	 * @var int
+	 */
+	private $totalMoves;
+	
+	/**
 	 * Foo bar
 	 * 
 	 * @param enum $type One of \Enums\ChessPieceType values
@@ -36,6 +43,8 @@ class ChessPiece
 		$this->setType($type);
 		
 		$this->setColor($color);
+		
+		$this->totalMoves	= 0;
 	}
 	
 	/**
@@ -84,7 +93,34 @@ class ChessPiece
 		return $this;
 	}
 
-
+	/**
+	 * Returns the number of movements this piece has made (0 means this piece
+	 * hasn't moved yet)
+	 * 
+	 * @return int
+	 */
+	public function getTotalMoves()
+	{
+		return $this->totalMoves;
+	}
+	
+	/**
+	 * Returns TRUE if piece has been moved already, or FALSE if it didn't move yet
+	 * 
+	 * @return bool 
+	 */
+	public function hasMoved()
+	{
+		return (bool) $this->totalMoves;
+	}
+	
+	/**
+	 * Increase the total number of movements this piece has made by 1
+	 */
+	public function increaseMovements()
+	{
+		$this->totalMoves++;
+	}
 }
 
 
