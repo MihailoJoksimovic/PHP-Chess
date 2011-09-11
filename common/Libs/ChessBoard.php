@@ -71,6 +71,8 @@ class ChessBoard
 				$column_counter++;
 				
 				$square = new ChessBoardSquare($color);
+				
+				$square->setLocation(new Coordinates($row, $column));
 			
 				$this->boardMatrix[$row][$column]	= $square;
 			}
@@ -85,27 +87,24 @@ class ChessBoard
 		$this->boardMatrix	= array_reverse($this->boardMatrix, true);
 	}
 	
+	
 	/**
-	 * Returns the ChessBoardSquare found on following coordinates.
+	 * Returns the ChessBoardSquare found on following location.
 	 * 
-	 * If you're playing smartass, and enter non-existing column, you'll get FALSE of course ...
+	 * If you're playing smartass, and request non-existing column, you'll get FALSE of course ...
 	 * 
-	 * @param int $row Board row (1 - 8)
-	 * @param char $column Column (a - h)
+	 * @param Coordinates $location
 	 * @return \Libs\ChessBoardSquare
-	 * @todo Replace raw $row and $column parameters with Coordinates class
 	 */
-	public function getSquareByCoordinates($row, $column)
+	public function getSquareByLocation(Coordinates $location)
 	{
-		$column	= strtolower($column); // Let's just be sure we're on the same track ;)
-		
-		if ( ! isset($this->boardMatrix[$row][$column]))
+		if ( ! isset($this->boardMatrix[$location->getRow()][$location->getColumn()]))
 		{
 			return false;
 		}
 		else
 		{
-			return $this->boardMatrix[$row][$column];
+			return $this->boardMatrix[$location->getRow()][$location->getColumn()];
 		}
 	}
 	
@@ -129,35 +128,35 @@ class ChessBoard
 		// First, set up for White Player
 		//
 		
-		$this->getSquareByCoordinates(1, 'a')
+		$this->getSquareByLocation(new Coordinates(1, 'a'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::ROOK, \Enums\Color::WHITE))
 				->setLocation(new Coordinates(1, 'a'));
 		
-		$this->getSquareByCoordinates(1, 'b')
+		$this->getSquareByLocation(new Coordinates(1, 'b'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::KNIGHT, \Enums\Color::WHITE))
 				->setLocation(new Coordinates(1, 'b'));
 		
-		$this->getSquareByCoordinates(1, 'c')
+		$this->getSquareByLocation(new Coordinates(1, 'c'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::BISHOP, \Enums\Color::WHITE))
 				->setLocation(new Coordinates(1, 'c'));
 		
-		$this->getSquareByCoordinates(1, 'd')
+		$this->getSquareByLocation(new Coordinates(1, 'd'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::QUEEN, \Enums\Color::WHITE))
 				->setLocation(new Coordinates(1, 'd'));
 		
-		$this->getSquareByCoordinates(1, 'e')
+		$this->getSquareByLocation(new Coordinates(1, 'e'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::KING, \Enums\Color::WHITE))
 				->setLocation(new Coordinates(1, 'e'));
 		
-		$this->getSquareByCoordinates(1, 'f')
+		$this->getSquareByLocation(new Coordinates(1, 'f'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::BISHOP, \Enums\Color::WHITE))
 				->setLocation(new Coordinates(1, 'f'));
 		
-		$this->getSquareByCoordinates(1, 'g')
+		$this->getSquareByLocation(new Coordinates(1, 'g'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::KNIGHT,\Enums\Color::WHITE))
 				->setLocation(new Coordinates(1, 'g'));
 		
-		$this->getSquareByCoordinates(1, 'h')
+		$this->getSquareByLocation(new Coordinates(1, 'h'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::ROOK, \Enums\Color::WHITE))
 				->setLocation(new Coordinates(1, 'h'));
 		
@@ -165,7 +164,7 @@ class ChessBoard
 		
 		foreach (range('a', 'h') AS $column)
 		{
-			$this->getSquareByCoordinates(2, $column)
+			$this->getSquareByLocation(new Coordinates(2, $column))
 					->setChessPiece(new ChessPiece(\Enums\ChessPieceType::PAWN, \Enums\Color::WHITE))
 					->setLocation(new Coordinates(2, $column));
 		}
@@ -178,35 +177,35 @@ class ChessBoard
 		// Now, set up for black player
 		//
 		
-		$this->getSquareByCoordinates(8, 'a')
+		$this->getSquareByLocation(new Coordinates(8, 'a'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::ROOK, \Enums\Color::BLACK))
 				->setLocation(new Coordinates(8, 'a'));
 		
-		$this->getSquareByCoordinates(8, 'b')
+		$this->getSquareByLocation(new Coordinates(8, 'b'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::KNIGHT, \Enums\Color::BLACK))
 				->setLocation(new Coordinates(8, 'b'));
 		
-		$this->getSquareByCoordinates(8, 'c')
+		$this->getSquareByLocation(new Coordinates(8, 'c'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::BISHOP, \Enums\Color::BLACK))
 				->setLocation(new Coordinates(8, 'c'));
 		
-		$this->getSquareByCoordinates(8, 'd')
+		$this->getSquareByLocation(new Coordinates(8, 'd'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::QUEEN, \Enums\Color::BLACK))
 				->setLocation(new Coordinates(8, 'd'));
 		
-		$this->getSquareByCoordinates(8, 'e')
+		$this->getSquareByLocation(new Coordinates(8, 'e'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::KING, \Enums\Color::BLACK))
 				->setLocation(new Coordinates(8, 'e'));
 		
-		$this->getSquareByCoordinates(8, 'f')
+		$this->getSquareByLocation(new Coordinates(8, 'f'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::BISHOP, \Enums\Color::BLACK))
 				->setLocation(new Coordinates(8, 'f'));
 		
-		$this->getSquareByCoordinates(8, 'g')
+		$this->getSquareByLocation(new Coordinates(8, 'g'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::KNIGHT, \Enums\Color::BLACK))
 				->setLocation(new Coordinates(8, 'g'));
 		
-		$this->getSquareByCoordinates(8, 'h')
+		$this->getSquareByLocation(new Coordinates(8, 'h'))
 				->setChessPiece(new ChessPiece(\Enums\ChessPieceType::ROOK, \Enums\Color::BLACK))
 				->setLocation(new Coordinates(8, 'h'));
 		
@@ -214,7 +213,7 @@ class ChessBoard
 		
 		foreach (range('a', 'h') AS $column)
 		{
-			$this->getSquareByCoordinates(7, $column)
+			$this->getSquareByLocation(new Coordinates(7, $column))
 					->setChessPiece(new ChessPiece(\Enums\ChessPieceType::PAWN, \Enums\Color::BLACK))
 					->setLocation(new Coordinates(7, $column));
 		}

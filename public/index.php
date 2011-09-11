@@ -1,5 +1,6 @@
 <?php
 require_once dirname(__FILE__) . "/../common/config/config.php";
+
 ?>
 <html>
 	<head>
@@ -27,6 +28,10 @@ require_once dirname(__FILE__) . "/../common/config/config.php";
 	</head>
 
 	<body>
+		<?php 
+		
+			
+		?>
 		<table border="1" cellspacing="0" style="width: 100%; height: 80%; text-align: center;">
 			
 			<tr >
@@ -49,7 +54,28 @@ require_once dirname(__FILE__) . "/../common/config/config.php";
 			
 				$piece1 = new \Libs\ChessPiece("pawn", "white");
 			
-				$board = new \Libs\ChessBoard(); $board->settleUpPiecesForNewGame();
+				$board = new \Libs\ChessBoard(); //$board->settleUpPiecesForNewGame();
+				
+				$player1 = new \Libs\Player("white");
+				$player2 = new \Libs\Player("black");
+				$game = new \Libs\ChessGame($player1, $player2, $board);
+				$engine = new \Libs\GameEngine($game);
+				
+//				var_dump($game->getChessBoard()->getSquareByCoordinates(3, 'a'));
+				
+				$relativeField = $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates(3,'e'));
+				
+				$relativeField->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::KING, "white"));
+				
+				$relativeField2 = $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates(4,'e'));
+				$relativeField2->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::QUEEN, "white"));
+				
+				$relativeField->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::KING, "white"));
+				
+				foreach($engine->getAllPossibleMovementsForKing($relativeField) AS $field)
+				{
+					$field->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::KING, "black"));
+				}
 				
 				$rowNum = 8; $columnNum = 0;
 				foreach ($board->getBoardMatrix() AS $row => $columns):
