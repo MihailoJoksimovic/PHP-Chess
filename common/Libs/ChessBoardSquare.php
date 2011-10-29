@@ -10,7 +10,7 @@ namespace Libs;
  * 
  * @author Mihailo Joksimovic <tinzey@gmail.com>
  */
-class ChessBoardSquare
+class ChessBoardSquare implements Interfaces\IComparable
 {
 	/**
 	 * Field color (white or black)
@@ -109,5 +109,31 @@ class ChessBoardSquare
 		return $this;
 	}
 
+	public function equal($object)
+	{
+		/* @var $object ChessBoardSquare */
+		
+		return ($this->getLocation()->getRow() == $object->getLocation()->getRow() 
+				&& $this->getLocation()->getColumn() == $object->getLocation()->getColumn());
+	}
+
+	public function isContainedIn(Array $objects)
+	{
+		foreach ($objects AS $object)
+		{
+			if ($this->equal($object))
+			{
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	
+	public function __toString()
+	{
+		return "Color: {$this->getColor()}; Location: {$this->getLocation()}; Chess Piece: {$this->getChessPiece()}";
+	}
 	
 }

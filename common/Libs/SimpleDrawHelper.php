@@ -26,6 +26,7 @@ class SimpleDrawHelper
 				\Enums\ChessPieceType::PAWN		=> '♙',
 				\Enums\ChessPieceType::QUEEN	=> '♕',
 				\Enums\ChessPieceType::ROOK		=> '♖',
+				\Enums\ChessPieceType::FLAG		=> '<span style="color:red">•</span>',
 			),
 
 			\Enums\Color::BLACK => array(
@@ -35,6 +36,7 @@ class SimpleDrawHelper
 				\Enums\ChessPieceType::PAWN		=> '♟',
 				\Enums\ChessPieceType::QUEEN	=> '♛',
 				\Enums\ChessPieceType::ROOK		=> '♜',
+				\Enums\ChessPieceType::FLAG		=> '<span style="color:red">•</span>',
 			)
 			
 		);

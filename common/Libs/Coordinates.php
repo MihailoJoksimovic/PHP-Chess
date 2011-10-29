@@ -32,18 +32,11 @@ class Coordinates
 	{
 		if ( ! is_null($row))
 		{
-			if (in_array($row, range(1, 8)))
-			{
-				$this->row = $row;
-			}
-			else
-			{
-				throw new \Exception("Invalid row specified: $row; Valid rows are from 1 to 8", 0);
-			}
+			$this->row	= $row;
 		}
 		else
 		{
-			$this->row = null;
+			$this->row	= null;
 		}
 	}
 
@@ -57,17 +50,18 @@ class Coordinates
 	{
 		if ( ! is_null($column))
 		{
-			$column	= strtolower($column);
-			
-			if (in_array($column, range('a', 'h')))
-			{
-				$this->column = $column;
-			}
-			else
-			{
-				throw new \Exception("Invalid column specified: $column; Valid columns are A - H", 0);
-			}
+			$this->column	= strtolower($column);
 		}
+		else
+		{
+			$this->column	= null;
+		}
+	}
+	
+	
+	public function __toString()
+	{
+		return "({$this->row}, {$this->column})";
 	}
 
 

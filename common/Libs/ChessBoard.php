@@ -225,6 +225,11 @@ class ChessBoard
 	 * If the piece is found, object of type ChessBoardSquare where the piece is 
 	 * located will be returned. Otherwise, NULL is returned
 	 * 
+	 * IMPORTANT NOTE: This method is safe to be used for finding ONLY QUEEN
+	 * and KING (since there's only one king/queen per player). Searching for
+	 * any other piece using this method will return the first found piece !
+	 * For searching for multiple pieces, please use findChessPieces() method
+	 * 
 	 * @param ChessPiece $chessPiece 
 	 * @return ChessBoardSquare
 	 */
@@ -236,9 +241,48 @@ class ChessBoard
 			{
 				$_square = $this->getSquareByLocation(new Coordinates($row, $column));
 				
+				if ($_square->getChessPiece() && $_square->getChessPiece()->equal($chessPiece))
+				{
+					return $_square;
+				}
 			}
 		}
+		
+		return false;
 	}
 
 
+	/**
+	 * Finds the location where the specified chess piece is located.
+	 * 
+	 * If the piece is found, object of type ChessBoardSquare where the piece is 
+	 * located will be returned. Otherwise, NULL is returned
+	 * 
+	 * IMPORTANT NOTE: This method is safe to be used for finding ONLY QUEEN
+	 * and KING (since there's only one king/queen per player). Searching for
+	 * any other piece using this method will return the first found piece !
+	 * For searching for multiple pieces, please use findChessPieces() method
+	 * 
+	 * @param ChessPiece $chessPiece 
+	 * @return array|ChessBoardSquare
+	 */
+	public function findChessPieces(ChessPiece $chessPiece)
+	{
+		$squares	= array();
+		
+		foreach (range(1, 8) AS $row)
+		{
+			foreach (range('a', 'h') AS $column)
+			{
+				$_square = $this->getSquareByLocation(new Coordinates($row, $column));
+				
+				if ($_square->getChessPiece() && $_square->getChessPiece()->equal($chessPiece))
+				{
+					$squares[]	= $_square;
+				}
+			}
+		}
+		
+		return $squares;
+	}
 }

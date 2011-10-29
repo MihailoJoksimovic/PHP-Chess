@@ -114,3 +114,14 @@ else
 require_once 'config/auto_loader.php';
 
 spl_autoload_register("auto_loader::load");
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//
+// Common Classes
+//
+////////////////////////////////////////////////////////////////////////////////
+
+require_once APP_PATH . "common/Libs/3rdParty/underscore.php";
+
+require_once APP_PATH . "common/Libs/3rdParty/linklist.class.php";

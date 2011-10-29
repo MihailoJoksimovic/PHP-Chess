@@ -91,21 +91,41 @@ class ChessBoardHelper
 	{
 		$return = array();
 		
-		foreach (range('a', 'h') AS $column)
+		$columnInt	= ord($chessBoardSquare->getLocation()->getColumn());
+		
+		$left_progress = new \LinkList();
+		$right_progress	= new \LinkList();
+		
+		foreach (range(1, 8) AS $i)
 		{
-			$return[]	= $chessBoard->getSquareByLocation(new Coordinates(
-					$chessBoardSquare->getLocation()->getRow(), $column
+			$left = $chessBoard->getSquareByLocation(new Coordinates(
+					$chessBoardSquare->getLocation()->getRow()
+					, chr($columnInt - $i)
 				)
 			);
+			
+			$left_progress->insertLast($left);
+			
+			$right = $chessBoard->getSquareByLocation(new Coordinates(
+					$chessBoardSquare->getLocation()->getRow()
+					, chr($columnInt + $i)
+				)
+			);
+			
+			$right_progress->insertLast($right);
 		}
 		
+		$return = array($left_progress, $right_progress);
+		
 		// Remove out-of-range fields
-		
-		$_return = $return;
-		
-		foreach ($_return AS $key => $square)
-		{
-			if ( ! $square)
+		foreach ($return AS $key => $linkedList)
+		{	
+			for ($i = 0; $i < 8; $i++)
+			{
+				$linkedList->deleteNode(false);
+			}
+			
+			if (! $linkedList->getFirstNode() ||  $linkedList->getFirstNode()->data === false)
 			{
 				unset($return[$key]);
 			}
@@ -123,28 +143,41 @@ class ChessBoardHelper
 	{
 		$return = array();
 		
-		$vertical_progress_right	= array();
-		$vertical_progress_left		= array();
+		$columnInt	= ord($chessBoardSquare->getLocation()->getColumn());
 		
-		foreach (range(1, 8) AS $row)
+		$vertical_top_progress = new \LinkList();
+		$vertical_bottom_progress	= new \LinkList();
+		
+		foreach (range(1, 8) AS $i)
 		{
-			$vertical	= $chessBoard->getSquareByLocation(new Coordinates(
-					$row, $chessBoardSquare->getLocation()->getColumn()
+			$vertical_top = $chessBoard->getSquareByLocation(new Coordinates(
+					$chessBoardSquare->getLocation()->getRow() + $i
+					, chr($columnInt)
 				)
 			);
 			
-			$vertical_progress->insertLast($vertical);
+			$vertical_top_progress->insertLast($vertical_top);
+			
+			$vertical_bottom = $chessBoard->getSquareByLocation(new Coordinates(
+					$chessBoardSquare->getLocation()->getRow() - $i
+					, chr($columnInt)
+				)
+			);
+			
+			$vertical_bottom_progress->insertLast($vertical_bottom);
 		}
 		
-		$return = array($vertical_progress_left, $vertical_progress_right);
+		$return = array($vertical_top_progress, $vertical_bottom_progress);
 		
 		// Remove out-of-range fields
-		
-		$_return = $return;
-		
-		foreach ($_return AS $key => $square)
-		{
-			if ( ! $square)
+		foreach ($return AS $key => $linkedList)
+		{	
+			for ($i = 0; $i < 8; $i++)
+			{
+				$linkedList->deleteNode(false);
+			}
+			
+			if (! $linkedList->getFirstNode() ||  $linkedList->getFirstNode()->data === false)
 			{
 				unset($return[$key]);
 			}

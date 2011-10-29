@@ -10,7 +10,7 @@ namespace Libs;
  * 
  * @author Mihailo Joksimovic <tinzey@gmail.com>
  */
-class ChessPiece
+class ChessPiece implements Interfaces\IComparable
 {
 	/**
 	 * Piece type (e.g. Knight)
@@ -121,6 +121,39 @@ class ChessPiece
 	{
 		$this->totalMoves++;
 	}
+	
+	
+	/**
+	 * Checks whether passed object is identical to the current one
+	 * 
+	 * @param ChessPiece $object
+	 * @return bool
+	 */
+	public function equal($object)
+	{
+		/* @var $object ChessPiece */
+		
+		return ($this->getColor() == $object->getColor() && $this->getType() == $object->getType());
+	}
+	
+	public function isContainedIn(Array $objects)
+	{
+		foreach ($objects AS $object)
+		{
+			if ($this->equal($object))
+			{
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public function __toString()
+	{
+		return "{$this->getColor()} {$this->getType()}, {$this->getTotalMoves()} moves";
+	}
+
 }
 
 

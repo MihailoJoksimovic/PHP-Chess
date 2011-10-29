@@ -28,4 +28,9 @@ class ChessPieceType extends Enum
 	 */
 	const PAWN		= 'pawn';
 	
+	/**
+	 * Flag used for testing purposes
+	 */
+	const FLAG		= 'flag';
+	
 }
