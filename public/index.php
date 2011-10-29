@@ -61,21 +61,29 @@ require_once dirname(__FILE__) . "/../common/config/config.php";
 				$game = new \Libs\ChessGame($player1, $player2, $board);
 				$engine = new \Libs\GameEngine($game);
 				
-//				var_dump($game->getChessBoard()->getSquareByCoordinates(3, 'a'));
 				
-				$relativeField = $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates(3,'e'));
 				
-				$relativeField->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::KING, "white"));
 				
-				$relativeField2 = $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates(4,'e'));
-				$relativeField2->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::QUEEN, "white"));
+				$relativeField = $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates(4,'d'));
+				$relativeField->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::KNIGHT, "white"));
 				
-				$relativeField->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::KING, "white"));
+				$relativeField2 = $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates(6,'e'));
+				$relativeField2->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::KING, "black"));
+//				
+//				$relativeField3 = $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates(4,'f'));
+//				$relativeField3->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::ROOK, "black"));
+//				
+//				$relativeField4 = $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates(6, 'f'));
+//				$relativeField4->setChessPiece(new Libs\ChessPiece(Enums\ChessPieceType::ROOK, 'white'));
 				
-				foreach($engine->getAllPossibleMovementsForKing($relativeField) AS $field)
+				foreach($engine->getAllPossibleMovementsForKnight($relativeField) AS $field)
 				{
-					$field->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::KING, "black"));
+					$field->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::FLAG, "black"));
 				}
+				
+				
+				
+				
 				
 				$rowNum = 8; $columnNum = 0;
 				foreach ($board->getBoardMatrix() AS $row => $columns):
