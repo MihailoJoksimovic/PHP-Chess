@@ -36,10 +36,54 @@ class GameEngine
 	
 	
 	
-	
+	/**
+	 * Returns array of all ChessBoardSquare objects where piece from target
+	 * square can move to
+	 * 
+	 * If there are no possible movements, empty array will be returned
+	 * 
+	 * @param ChessBoardSquare $chessBoardSquare 
+	 * @return array|ChessBoardSquare
+	 */
 	public function getAllPossibleMovements(ChessBoardSquare $chessBoardSquare)
 	{
+		$movements = array();
 		
+		// If there's no chess piece - no movements are available :-)
+		if ( ! $chessBoardSquare->getChessPiece())
+		{
+			return $movements;
+		}
+		
+		// Delegates would come in handy now heh ....
+		switch($chessBoardSquare->getChessPiece()->getType())
+		{
+			case \Enums\ChessPieceType::BISHOP:
+				$movements	= $this->getAllPossibleMovementsForBishop($chessBoardSquare);
+				break;
+			
+			case \Enums\ChessPieceType::KING:
+				$movements	= $this->getAllPossibleMovementsForKing($chessBoardSquare);
+				break;
+			
+			case \Enums\ChessPieceType::KNIGHT:
+				$movements	= $this->getAllPossibleMovementsForKnight($chessBoardSquare);
+				break;
+			
+			case \Enums\ChessPieceType::PAWN:
+				$movements	= $this->getAllPossibleMovementsForPawn($chessBoardSquare);
+				break;
+			
+			case \Enums\ChessPieceType::QUEEN:
+				$movements	= $this->getAllPossibleMovementsForQueen($chessBoardSquare);
+				break;
+			
+			case \Enums\ChessPieceType::ROOK:
+				$movements	= $this->getAllPossibleMovementsForRook($chessBoardSquare);
+				break;
+		}
+		
+		return $movements;
 	}
 
 	
@@ -284,7 +328,7 @@ class GameEngine
 				)
 		);
 		
-		if ($destination_field->getChessPiece() 
+		if ($destination_field && $destination_field->getChessPiece() 
 				&& $destination_field->getChessPiece()->getColor() == $opponnentColor
 				&& $destination_field->getChessPiece()->getType() != \Enums\ChessPieceType::KING)
 		{
@@ -300,7 +344,7 @@ class GameEngine
 				)
 		);
 		
-		if ($destination_field->getChessPiece() 
+		if ($destination_field && $destination_field->getChessPiece() 
 				&& $destination_field->getChessPiece()->getColor() == $opponnentColor
 				&& $destination_field->getChessPiece()->getType() != \Enums\ChessPieceType::KING)
 		{
@@ -647,5 +691,13 @@ class GameEngine
 				continue;
 			}
 		}
+	}
+	
+	public function getPlayerWhoseTurnIsNow()
+	{
+		// Even turns (0,2,4,6,...) are for White Player, while odd turns (1,3,5,...)
+		// are for black player
+		
+		
 	}
 }

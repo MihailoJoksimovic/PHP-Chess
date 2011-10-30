@@ -39,7 +39,8 @@ class Movement
 	
 	public function __construct(ChessBoardSquare $from, ChessBoardSquare $to)
 	{
-		
+		$this->setFrom($from);
+		$this->setTo($to);
 	}
 	
 	/**
