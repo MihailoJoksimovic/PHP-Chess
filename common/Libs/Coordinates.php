@@ -10,7 +10,7 @@ namespace Libs;
  * 
  * @author Mihailo Joksimovic <tinzey@gmail.com>
  */
-class Coordinates
+class Coordinates implements \Libs\Interfaces\IComparable
 {
 	private $row;
 	
@@ -63,6 +63,37 @@ class Coordinates
 	{
 		return "({$this->row}, {$this->column})";
 	}
+	
+	/**
+	 * Check if two objects are equal
+	 * 
+	 * @param Coordinates $object
+	 * @return bool
+	 */
+	public function equal($object)
+	{
+		return ($object->getRow() == $this->getRow() && $object->getColumn() == $this->getColumn());
+	}
+
+	/**
+	 * Check if current object is contained in array of provided objects
+	 * 
+	 * @param array $objects
+	 * @return bool 
+	 */
+	public function isContainedIn(array $objects)
+	{
+		foreach ($objects AS $object)
+		{
+			if ($object->equal($this))
+			{
+				true;
+			}
+		}
+		
+		return false;
+	}
+
 
 
 }

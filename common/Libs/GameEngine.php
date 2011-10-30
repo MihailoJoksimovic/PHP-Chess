@@ -32,6 +32,46 @@ class GameEngine
 	{
 		$this->chessGame = $chessGame;
 	}
+	
+	
+	public function isMovementAllowed(ChessBoardSquare $fromChessBoardSquare, ChessBoardSquare $toChessBoardSquare)
+	{
+		// If current player's king is under check, ONLY king can move, and ONLY
+		// to fields that aren't under check !
+		
+		
+		
+		
+		// Empty squares aren't allowed to be moved ;)
+		if ( ! $fromChessBoardSquare->getChessPiece())
+		{
+			return false;
+		}
+		
+		// Check whose turn is it ? If it's white's turn, but we tried playing 
+		// with black piece (or vice - versa) -- that is NOT allowed !
+		if ($this->getPlayerWhoseTurnIsNow()->getColor() != $fromChessBoardSquare->getChessPiece()->getColor())
+		{
+			echo "INVALID PLAYER COLOR !!! <br/>";
+			
+			return false;
+		}
+		
+		
+		// This is more than simple operation -- get all possible movements and
+		// see if requested one is one of them :-)
+		
+		$allowedMovements = $this->getAllPossibleMovements($fromChessBoardSquare);
+		
+		if (empty($allowedMovements))
+		{
+			return false;
+		}
+		else
+		{
+			return $toChessBoardSquare->isContainedIn($allowedMovements);
+		}
+	}
 
 	
 	
@@ -50,7 +90,7 @@ class GameEngine
 		$movements = array();
 		
 		// If there's no chess piece - no movements are available :-)
-		if ( ! $chessBoardSquare->getChessPiece())
+		if ( ! $chessBoardSquare || ! $chessBoardSquare->getChessPiece())
 		{
 			return $movements;
 		}
@@ -85,15 +125,47 @@ class GameEngine
 		
 		return $movements;
 	}
-
 	
-	
-	
-	
-	
-	
-	
-	
+	/**
+	 *
+	 * @param ChessBoardSquare $chessBoardSquare 
+	 * @return array|ChessBoardSquare
+	 */
+	public function getAllSquaresUnderAttackByChessPiece(ChessBoardSquare $chessBoardSquare)
+	{
+		$squares = array();
+		
+		switch($chessBoardSquare->getChessPiece()->getType())
+		{
+			case \Enums\ChessPieceType::BISHOP:
+				$squares	= $this->getAllPossibleMovementsForBishop($chessBoardSquare);
+				break;
+			
+			case \Enums\ChessPieceType::KING:
+				$squares	= $this->getAllPossibleMovementsForKing($chessBoardSquare);
+				break;
+			
+			case \Enums\ChessPieceType::KNIGHT:
+				$squares	= $this->getAllPossibleMovementsForKnight($chessBoardSquare);
+				break;
+			
+			case \Enums\ChessPieceType::PAWN:
+				$squares	= $this->getAllSquaresUnderAttackByPawn($chessBoardSquare);
+				break;
+			
+			case \Enums\ChessPieceType::QUEEN:
+				$squares	= $this->getAllPossibleMovementsForQueen($chessBoardSquare);
+				break;
+			
+			case \Enums\ChessPieceType::ROOK:
+				$squares	= $this->getAllPossibleMovementsForRook($chessBoardSquare);
+				break;
+		}
+		
+		return $squares;
+		
+		
+	}
 	
 	/**
 	 * Returns the array of ALL possible ChessBoardSquare's where KING can move
@@ -118,11 +190,6 @@ class GameEngine
 		//		- The king may not currently be in check, nor may the king pass 
 		//			through squares that are under attack by enemy pieces, 
 		//			nor move to a square where it is in check.
-		//			
-		//			
-		//			
-		//	TODO: Remove moves to fields that are under attack by opponent !
-		//
 		
 		
 		
@@ -164,6 +231,13 @@ class GameEngine
 			
 			// All fields around Opponent's king are NO-NO !
 			if ($destinationField->isContainedIn($forbiddenFields))
+			{
+				unset($movements[$key]);
+				
+				continue;
+			}
+			// All fields that are under attack by opponent are NO-NO !
+			else if ($this->isSquareUnderAttack($destinationField))
 			{
 				unset($movements[$key]);
 				
@@ -278,34 +352,44 @@ class GameEngine
 				: \Enums\Color::WHITE
 		;
 		
+		// Fix for black player where black player is allowed to go only in negative direction
+		if ($chessBoardSquare->getChessPiece()->getColor() == \Enums\Color::WHITE)
+		{
+			$sign = 1;
+		}
+		else
+		{
+			$sign = -1;
+		}
+		
 		//
 		// a) One field up
 		//
 		
 		$destination_field	= $this->getChessGame()->getChessBoard()->getSquareByLocation(
 				new Coordinates(
-						$chessBoardSquare->getLocation()->getRow() + 1
+						$chessBoardSquare->getLocation()->getRow() + (1 * $sign)
 						, $chessBoardSquare->getLocation()->getColumn()
 				)
 		);
 		
-		if ( ! $destination_field->getChessPiece() 
-				|| ($destination_field->getChessPiece()->getColor() == $opponnentColor && $destination_field->getChessPiece()->getType() != \Enums\ChessPieceType::KING))
+		if ($destination_field && ! $destination_field->getChessPiece())
 		{
 			$movements[]	= $destination_field;
 		}
+		
 		//
 		// c) Two fields up
 		//
 		
 		$destination_field	= $this->getChessGame()->getChessBoard()->getSquareByLocation(
 				new Coordinates(
-						$chessBoardSquare->getLocation()->getRow() + 2
+						$chessBoardSquare->getLocation()->getRow() + (2 * $sign)
 						, $chessBoardSquare->getLocation()->getColumn()
 				)
 		);
 		
-		if ($chessBoardSquare->getChessPiece()->getTotalMoves() == 0)
+		if ($destination_field && $chessBoardSquare->getChessPiece()->getTotalMoves() == 0 && ! $destination_field->getChessPiece())
 		{
 			if ( ! $destination_field->getChessPiece() 
 					|| ($destination_field->getChessPiece()->getColor() == $opponnentColor && $destination_field->getChessPiece()->getType() != \Enums\ChessPieceType::KING))
@@ -323,8 +407,8 @@ class GameEngine
 		// diagonal top-left
 		$destination_field	= $this->getChessGame()->getChessBoard()->getSquareByLocation(
 				new Coordinates(
-						$chessBoardSquare->getLocation()->getRow() + 1
-						, chr($columnInt - 1)
+						$chessBoardSquare->getLocation()->getRow() + (1 * $sign)
+						, chr($columnInt - 1 * $sign)
 				)
 		);
 		
@@ -339,14 +423,77 @@ class GameEngine
 		// diagonal top-right
 		$destination_field	= $this->getChessGame()->getChessBoard()->getSquareByLocation(
 				new Coordinates(
-						$chessBoardSquare->getLocation()->getRow() + 1
-						, chr($columnInt + 1)
+						$chessBoardSquare->getLocation()->getRow() + (1 * $sign)
+						, chr($columnInt + 1 * $sign)
 				)
 		);
 		
 		if ($destination_field && $destination_field->getChessPiece() 
 				&& $destination_field->getChessPiece()->getColor() == $opponnentColor
 				&& $destination_field->getChessPiece()->getType() != \Enums\ChessPieceType::KING)
+		{
+			$movements[]	= $destination_field;
+		}
+		
+		
+		return $movements;
+	}
+	
+	/**
+	 *
+	 * @param ChessBoardSquare $chessBoardSquare 
+	 * @return array|ChessBoardSquare
+	 */
+	public function getAllSquaresUnderAttackByPawn(ChessBoardSquare $chessBoardSquare)
+	{
+		
+		$movements = array();
+		
+		$opponnentColor	= ($chessBoardSquare->getChessPiece()->getColor() == \Enums\Color::WHITE)
+				? \Enums\Color::BLACK
+				: \Enums\Color::WHITE
+		;
+		
+		// Fix for black player where black player is allowed to go only in negative direction
+		if ($chessBoardSquare->getChessPiece()->getColor() == \Enums\Color::WHITE)
+		{
+			$sign = 1;
+		}
+		else
+		{
+			$sign = -1;
+		}
+		
+		
+		//
+		// Pawn attacks diagonal top-left and diagonal top-right fields
+		//
+		
+		$columnInt	= ord($chessBoardSquare->getLocation()->getColumn());
+		
+		// diagonal top-left
+		$destination_field	= $this->getChessGame()->getChessBoard()->getSquareByLocation(
+				new Coordinates(
+						$chessBoardSquare->getLocation()->getRow() + (1 * $sign)
+						, chr($columnInt - 1 * $sign)
+				)
+		);
+		
+		if ($destination_field)
+		{
+			$movements[]	= $destination_field;
+		}
+		
+		
+		// diagonal top-right
+		$destination_field	= $this->getChessGame()->getChessBoard()->getSquareByLocation(
+				new Coordinates(
+						$chessBoardSquare->getLocation()->getRow() + (1 * $sign)
+						, chr($columnInt + 1 * $sign)
+				)
+		);
+		
+		if ($destination_field)
 		{
 			$movements[]	= $destination_field;
 		}
@@ -693,11 +840,49 @@ class GameEngine
 		}
 	}
 	
+	/**
+	 * Returns the player whose turn to play is now (white/black)
+	 * 
+	 * @return Player
+	 */
 	public function getPlayerWhoseTurnIsNow()
 	{
 		// Even turns (0,2,4,6,...) are for White Player, while odd turns (1,3,5,...)
 		// are for black player
 		
+		$total_movements = $this->getChessGame()->getTotalMovements();
 		
+		return ($total_movements == 0 || $total_movements % 2 == 0) 
+			? $this->getChessGame()->getWhitePlayer()
+			: $this->getChessGame()->getBlackPlayer()
+		;
+	}
+	
+	/**
+	 * Checks if specified square is under attack by opponent
+	 * 
+	 * @param ChessBoardSquare $chessBoardSquare
+	 * @return bool 
+	 */
+	public function isSquareUnderAttack(ChessBoardSquare $chessBoardSquare)
+	{
+		$opponnentColor	= ($this->getPlayerWhoseTurnIsNow()->getColor() == \Enums\Color::WHITE)
+				? \Enums\Color::BLACK
+				: \Enums\Color::WHITE
+		;
+		
+		// First, collect all opponent's pieces
+		$opponentsPieces = $this->getChessGame()->getChessBoard()->getAllChessPieces($opponnentColor);
+		
+		$fieldsUnderAttack = array();
+		
+		foreach ($opponentsPieces AS $piece)
+		{
+			$fieldsUnderAttack[]	= $this->getAllSquaresUnderAttackByChessPiece($piece);
+		}
+		
+		$fieldsUnderAttack = \__::flatten($fieldsUnderAttack);
+		
+		return $chessBoardSquare->isContainedIn($fieldsUnderAttack);
 	}
 }

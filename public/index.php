@@ -67,6 +67,19 @@ error_reporting(E_ALL);
 						$(this).addClass("active").removeClass("inactive");
 						
 						$(this).css('background-color', 'blue').css('cursor', 'pointer');
+						
+						var row = $(this).attr("boardRow");
+						var col = $(this).attr("boardColumn");
+						
+						
+						if ($("#moveLocation").val().length == 0 || $("#moveLocation").val().length == 4)
+						{
+							$("#moveLocation").val(col + row);
+						}
+						else if ($("#moveLocation").val().length == 2)
+						{
+							$("#moveLocation").val($("#moveLocation").val() + col + row);
+						}
 					}
 				});
 			});
@@ -75,10 +88,6 @@ error_reporting(E_ALL);
 	</head>
 
 	<body>
-		<?php 
-		
-			
-		?>
 		<table border="1" cellspacing="0" style="width: 100%; height: 80%; text-align: center;">
 			
 			<tr >
@@ -134,7 +143,7 @@ error_reporting(E_ALL);
 					
 					$engine = new \Libs\GameEngine($game);
 					
-					if ( ! preg_match("/([a-h]\d)/", $_POST['move']))
+					if ( ! preg_match("/^([a-h]\d){2}$/", $_POST['move']))
 					{
 						echo "Invalid movement: {$_POST['move']} !!!<br/>";
 					}
@@ -150,26 +159,49 @@ error_reporting(E_ALL);
 						foreach ($game->getChessBoard()->findChessPieces(new Libs\ChessPiece(\Enums\ChessPieceType::FLAG, "white")) AS $square)
 						{
 							$square->setChessPiece(null);
-
-
 						}
 						
 						/* @var $chessBoardSquare \Libs\ChessBoardSquare */
 						if ($chessBoardSquare && $chessBoardSquare->getChessPiece())
 						{							
-							// Temp: Show us all possible movements :-)
-							$all_possible_movements = $engine->getAllPossibleMovements($chessBoardSquare);
 							
-							foreach ($all_possible_movements AS $dest)
+							
+							$destination = $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates($to_row, $to_column));
+							
+							if ($engine->isMovementAllowed($chessBoardSquare, $destination))
 							{
-								$game->getChessBoard()->getSquareByLocation($dest->getLocation())->setChessPiece(
-										new \Libs\ChessPiece(\Enums\ChessPieceType::FLAG, "white"));
+								$chessBoardSquare->getChessPiece()->increaseMovements();
+								
+								// Move the piece to the selected position
+								$destination->setChessPiece($chessBoardSquare->getChessPiece());
+
+								$chessBoardSquare->setChessPiece(null);
+								
+								if ($engine->isSquareUnderAttack($destination))
+								{
+									echo "You have just moved to square under attack :-( <br/>";
+								}
+								
+								$game->addMovement(new Libs\Movement($chessBoardSquare, $destination));
+								
+								
+								
 							}
+							else
+							{
+								echo "INVALID MOVEMENT REQUESTED ! <br/>";
+							}
+							
+							
 							
 						}
 					}
 					
 				}
+				
+				echo "It's " . strtoupper($engine->getPlayerWhoseTurnIsNow()->getColor()) . " player turn !";
+				
+				
 				
 				
 				
@@ -211,7 +243,7 @@ error_reporting(E_ALL);
 				</td>
 				
 				<?php foreach ($columns AS $boardSquare): ?>
-				<td style="background-color: <?php echo ($boardSquare->getColor() == 'white') ? 'white' : '#dddddd'; ?>" originalBgColor="<?php echo ($boardSquare->getColor() == 'white') ? 'white' : '#dddddd'; ?>" class="inactive">
+				<td style="background-color: <?php echo ($boardSquare->getColor() == 'white') ? 'white' : '#dddddd'; ?>" originalBgColor="<?php echo ($boardSquare->getColor() == 'white') ? 'white' : '#dddddd'; ?>" class="inactive" boardRow="<?php echo $boardSquare->getLocation()->getRow(); ?>" boardColumn="<?php echo $boardSquare->getLocation()->getColumn(); ?>">
 					<?php /* @var $boardSquare \Libs\ChessBoardSquare */ 
 					if ( ! is_null($boardSquare->getChessPiece())): ?>
 						<span class="chesspiece">
@@ -251,7 +283,7 @@ error_reporting(E_ALL);
 		</table>
 		
 		<form name="main" method="POST" action="">
-			<input type="text" name="move" size="4"></input>
+			<input type="text" name="move" id="moveLocation" size="4"></input>
 			<input type="hidden" name="game" value="<?php echo base64_encode(serialize($game)); ?>" />
 			<button type="submit">Submit</button>
 		</form>

@@ -223,7 +223,7 @@ class ChessBoard
 	 * Finds the location where the specified chess piece is located.
 	 * 
 	 * If the piece is found, object of type ChessBoardSquare where the piece is 
-	 * located will be returned. Otherwise, NULL is returned
+	 * located will be returned. Otherwise, FALSE is returned
 	 * 
 	 * IMPORTANT NOTE: This method is safe to be used for finding ONLY QUEEN
 	 * and KING (since there's only one king/queen per player). Searching for
@@ -253,15 +253,12 @@ class ChessBoard
 
 
 	/**
-	 * Finds the location where the specified chess piece is located.
+	 * Finds the location where the specified chess piece are located.
 	 * 
-	 * If the piece is found, object of type ChessBoardSquare where the piece is 
-	 * located will be returned. Otherwise, NULL is returned
+	 * If the pieces are found, object of type ChessBoardSquare where the pieces are 
+	 * located will be returned. Otherwise, empty array is returned
 	 * 
-	 * IMPORTANT NOTE: This method is safe to be used for finding ONLY QUEEN
-	 * and KING (since there's only one king/queen per player). Searching for
-	 * any other piece using this method will return the first found piece !
-	 * For searching for multiple pieces, please use findChessPieces() method
+	 * NOTE: This method is safe for finding all chess pieces
 	 * 
 	 * @param ChessPiece $chessPiece 
 	 * @return array|ChessBoardSquare
@@ -284,5 +281,44 @@ class ChessBoard
 		}
 		
 		return $squares;
+	}
+	
+	/**
+	 * Returns array of all chess pieces currently found on table.
+	 * 
+	 * If optional $color parameter is passed, only pieces of specified color
+	 * will be returned
+	 * 
+	 * @param enum $color [optional] If provided, only pieces of specified color will be returned
+	 * @return array|ChessBoardSquare
+	 */
+	public function getAllChessPieces($color = false)
+	{
+		$return = array();
+		
+		foreach(range(1, 8) AS $row)
+		{
+			foreach (range('a', 'h') AS $column)
+			{
+				$_location = new Coordinates($row, $column);
+				
+				if ($this->getSquareByLocation($_location)->getChessPiece())
+				{
+					if ($color)
+					{
+						if ($this->getSquareByLocation($_location)->getChessPiece()->getColor() == $color)
+						{
+							$return[]	= $this->getSquareByLocation($_location);
+						}
+					}
+					else
+					{
+						$return[]	= $this->getSquareByLocation($_location);
+					}
+				}
+			}
+		}
+		
+		return $return;
 	}
 }

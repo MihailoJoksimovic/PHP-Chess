@@ -45,7 +45,7 @@ class ChessGame
 	
 	public function __construct(Player $whitePlayer, Player $blackPlayer, ChessBoard $chessBoard)
 	{
-		$this->movements[]	= array();
+		$this->movements	= array();
 		
 		$this->setWhitePlayer($whitePlayer);
 		$this->setBlackPlayer($blackPlayer);
