@@ -35,16 +35,29 @@ class GameEngine
 	
 	
 	public function isMovementAllowed(ChessBoardSquare $fromChessBoardSquare, ChessBoardSquare $toChessBoardSquare)
-	{
-		// If current player's king is under check, ONLY king can move, and ONLY
-		// to fields that aren't under check !
-		
-		
-		
-		
+	{	
 		// Empty squares aren't allowed to be moved ;)
 		if ( ! $fromChessBoardSquare->getChessPiece())
 		{
+			return false;
+		}
+		
+		// Moving king under field that is under check by opponent is prohibited
+		if ($fromChessBoardSquare->getChessPiece()->getType() == \Enums\ChessPieceType::KING
+				&& $this->isSquareUnderAttack($toChessBoardSquare))
+		{
+			echo "NO KING UNDER FIELD UNDER CHECK !";
+			return false;
+		}
+		
+		// If current player's king is under check, ONLY king can move, and ONLY
+		// to fields that aren't under check !
+		
+		$playerKing = $this->getChessGame()->getChessBoard()->findChessPiece(new ChessPiece(\Enums\ChessPieceType::KING, $this->getPlayerWhoseTurnIsNow()->getColor()));
+		
+		if ($this->isSquareUnderAttack($playerKing) && ! $fromChessBoardSquare->getChessPiece()->equal($playerKing->getChessPiece()))
+		{
+			echo "YOUR KING IS UNDER CHECK ! You have to move king first !!! <br/>";
 			return false;
 		}
 		
@@ -138,7 +151,7 @@ class GameEngine
 		switch($chessBoardSquare->getChessPiece()->getType())
 		{
 			case \Enums\ChessPieceType::BISHOP:
-				$squares	= $this->getAllPossibleMovementsForBishop($chessBoardSquare);
+				$squares	= $this->getAllPossibleMovementsForBishop($chessBoardSquare, true);
 				break;
 			
 			case \Enums\ChessPieceType::KING:
@@ -146,7 +159,7 @@ class GameEngine
 				break;
 			
 			case \Enums\ChessPieceType::KNIGHT:
-				$squares	= $this->getAllPossibleMovementsForKnight($chessBoardSquare);
+				$squares	= $this->getAllPossibleMovementsForKnight($chessBoardSquare, true);
 				break;
 			
 			case \Enums\ChessPieceType::PAWN:
@@ -154,11 +167,11 @@ class GameEngine
 				break;
 			
 			case \Enums\ChessPieceType::QUEEN:
-				$squares	= $this->getAllPossibleMovementsForQueen($chessBoardSquare);
+				$squares	= $this->getAllPossibleMovementsForQueen($chessBoardSquare, true);
 				break;
 			
 			case \Enums\ChessPieceType::ROOK:
-				$squares	= $this->getAllPossibleMovementsForRook($chessBoardSquare);
+				$squares	= $this->getAllPossibleMovementsForRook($chessBoardSquare, true);
 				break;
 		}
 		
@@ -236,13 +249,6 @@ class GameEngine
 				
 				continue;
 			}
-			// All fields that are under attack by opponent are NO-NO !
-			else if ($this->isSquareUnderAttack($destinationField))
-			{
-				unset($movements[$key]);
-				
-				continue;
-			}
 		
 		}
 		
@@ -255,7 +261,7 @@ class GameEngine
 	 * @param ChessBoardSquare $chessBoardSquare
 	 * @return type 
 	 */
-	public function getAllPossibleMovementsForQueen(ChessBoardSquare $chessBoardSquare)
+	public function getAllPossibleMovementsForQueen(ChessBoardSquare $chessBoardSquare, $attack = false)
 	{
 		// Queen moves can move in all horizontal, vertical and diagonal directions
 		
@@ -293,12 +299,12 @@ class GameEngine
 				//
 				//	a) If that's our chessPiece, this movement and all further movements in that direction are forbidden
 				//	b) If that's opponent's chessPiece  -- movement is possible, but further ones aren't 
-				//	c) If that's opponent's king -- that one and all further are forbidden
+				//	c) If that's opponent's king, and $attack = false -- that one and all further are forbidden
 				if (($chessPiece = $destinationField->getChessPiece()))
 				{
 					if ($chessPiece->getColor() == $opponnentColor)
 					{
-						if ($chessPiece->getType() == \Enums\ChessPieceType::KING)
+						if ($chessPiece->getType() == \Enums\ChessPieceType::KING && ! $attack)
 						{
 							break;
 						}

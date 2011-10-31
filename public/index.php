@@ -177,10 +177,10 @@ error_reporting(E_ALL);
 
 								$chessBoardSquare->setChessPiece(null);
 								
-								if ($engine->isSquareUnderAttack($destination))
-								{
-									echo "You have just moved to square under attack :-( <br/>";
-								}
+//								if ($engine->isSquareUnderAttack($destination))
+//								{
+//									echo "You have just moved to square under attack :-( <br/>";
+//								}
 								
 								$game->addMovement(new Libs\Movement($chessBoardSquare, $destination));
 								
