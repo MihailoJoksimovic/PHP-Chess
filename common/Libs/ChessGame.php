@@ -43,6 +43,13 @@ class ChessGame
 	 */
 	private $movements;
 	
+	/**
+	 * Sets whether game is finished or not
+	 * 
+	 * @var bool
+	 */
+	private $gameFinished;
+	
 	public function __construct(Player $whitePlayer, Player $blackPlayer, ChessBoard $chessBoard)
 	{
 		$this->movements	= array();
@@ -130,6 +137,16 @@ class ChessGame
 	public function getTotalMovements()
 	{
 		return count($this->movements);
+	}
+	
+	public function isGameFinished()
+	{
+		return $this->gameFinished;
+	}
+	
+	public function setGameFinished($true_or_false)
+	{
+		$this->gameFinished = (bool) $true_or_false;
 	}
 
 

@@ -143,6 +143,13 @@ error_reporting(E_ALL);
 					
 					$engine = new \Libs\GameEngine($game);
 					
+					$engine->setGodMode(isset($_POST['godMode']));
+					
+					if ($game->isGameFinished())
+					{
+						echo "GAME IS FINISHED FFS ! No more playing, sorry :-( <br/>";
+					}
+					
 					if ( ! preg_match("/^([a-h]\d){2}$/", $_POST['move']))
 					{
 						echo "Invalid movement: {$_POST['move']} !!!<br/>";
@@ -194,6 +201,18 @@ error_reporting(E_ALL);
 							
 							
 							
+						}
+						
+						
+						// Is it a check mate ?
+						$king	= $board->findChessPiece(new \Libs\ChessPiece("king", $engine->getPlayerWhoseTurnIsNow()->getColor()));
+						
+						// Is white under check - mate ?
+						
+						if ($engine->isKingUnderCheckMate($king))
+						{
+							$game->setGameFinished(true);
+							echo "YOUR KING CAN'T MOVE !!! CHECK-MATE BITCH ! <br/>";
 						}
 					}
 					
@@ -285,6 +304,8 @@ error_reporting(E_ALL);
 		<form name="main" method="POST" action="">
 			<input type="text" name="move" id="moveLocation" size="4"></input>
 			<input type="hidden" name="game" value="<?php echo base64_encode(serialize($game)); ?>" />
+			<input type="checkbox" name="godMode" value="1" <?php if(isset($_POST['godMode'])): ?>checked<?php endif; ?> />
+			
 			<button type="submit">Submit</button>
 		</form>
 		

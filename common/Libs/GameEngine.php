@@ -10,9 +10,21 @@ class GameEngine
 	 */
 	private $chessGame;
 	
+	/**
+	 * If set to true (should NOT be the case unless in development stage) allows
+	 * player (developer) to bypass all limits/rules
+	 * 
+	 * Default: false
+	 * 
+	 * @var bool
+	 */
+	private $godMode;
+	
 	public function __construct(ChessGame $chessGame)
 	{
 		$this->setChessGame($chessGame);
+		
+		
 	}
 	
 	/**
@@ -33,21 +45,84 @@ class GameEngine
 		$this->chessGame = $chessGame;
 	}
 	
+	public function isKingUnderCheckMate(ChessBoardSquare $chessBoardSquare)
+	{
+		if ( ! $chessBoardSquare->getChessPiece() || ! $chessBoardSquare->getChessPiece()->getType() == \Enums\ChessPieceType::KING)
+		{
+			return false;
+		}
+		
+		// Get all possible movements
+		$movements	= $this->getAllPossibleMovements($chessBoardSquare);
+		
+		if (empty($movements))
+		{
+			// If no movements are possible, it means that king is surrounded
+			// by his pieces, so ... it's not check-mate for sure
+			
+			return false;
+		}
+		
+		// If every movement is to a field that is under attack by opponent ...
+		// It's check mate :-(
+		
+		$moves_under_attack	= 0;
+		
+		foreach ($movements AS $movement)
+		{
+			if ($this->isSquareUnderAttack($movement))
+			{
+				$moves_under_attack++;
+			}
+		}
+		
+		// If number of moves to fields under attack is equal to number of possible moves
+		// our king can't move anywhere and it's check mate :-)
+		
+		return $moves_under_attack == count($movements);
+	}
+	
 	
 	public function isMovementAllowed(ChessBoardSquare $fromChessBoardSquare, ChessBoardSquare $toChessBoardSquare)
 	{	
+		
 		// Empty squares aren't allowed to be moved ;)
 		if ( ! $fromChessBoardSquare->getChessPiece())
 		{
 			return false;
 		}
 		
-		// Moving king under field that is under check by opponent is prohibited
-		if ($fromChessBoardSquare->getChessPiece()->getType() == \Enums\ChessPieceType::KING
-				&& $this->isSquareUnderAttack($toChessBoardSquare))
+		// Everything is allowed in God mode !
+		if ($this->isGodMode())
 		{
-			echo "NO KING UNDER FIELD UNDER CHECK !";
+			return true;
+		}
+		
+		if ($this->getChessGame()->isGameFinished())
+		{
 			return false;
+		}
+			
+		// Moving king under field that is under check by opponent is prohibited
+		if ($fromChessBoardSquare->getChessPiece()->getType() == \Enums\ChessPieceType::KING)
+		{
+			// Small hack :-) 
+			// We're first going to remove the king from the table so we can get
+			// ABSOLUTELY all fields that are under attak (including the ones
+			// that are around the king)
+			
+			$kingPiece	= $fromChessBoardSquare->getChessPiece(); // Save the king ;)
+			$fromChessBoardSquare->setChessPiece(null); // Remove the king
+			
+			$isUnderAttack	= $this->isSquareUnderAttack($toChessBoardSquare);
+			
+			$fromChessBoardSquare->setChessPiece($kingPiece); // Return the king back ;)
+			
+			if ($isUnderAttack)
+			{
+				echo "NO KING UNDER FIELD UNDER CHECK ! <br/>";
+				return false;
+			}
 		}
 		
 		// If current player's king is under check, ONLY king can move, and ONLY
@@ -225,7 +300,20 @@ class GameEngine
 		$opponentKingSquare	= $this->getChessGame()->getChessBoard()->findChessPiece(new ChessPiece(\Enums\ChessPieceType::KING, $opponnentColor));
 		
 		// All fields around Opponent's king are NO-NO !
-		$forbiddenFields	= ChessBoardHelper::getAllNeighbourFields($this->getChessGame()->getChessBoard(), $opponentKingSquare);
+		// Note for myself: I just made a tweak which can cause KING to be removed
+		// from table temporarily (this is the case ONLY when checking if king
+		// is/will be under checck !), so sometimes this shit can be FALSE actually
+		// 
+		// In case it's FALSE - there are no forbidden fields for our king 
+		
+		if ($opponentKingSquare)
+		{
+			$forbiddenFields	= ChessBoardHelper::getAllNeighbourFields($this->getChessGame()->getChessBoard(), $opponentKingSquare);
+		}
+		else
+		{
+			$forbiddenFields	= array();
+		}
 		
 		$_movements = $movements;
 		
@@ -249,7 +337,6 @@ class GameEngine
 				
 				continue;
 			}
-		
 		}
 		
 		
@@ -865,6 +952,19 @@ class GameEngine
 	}
 	
 	/**
+	 * Returns the opponent's color
+	 * 
+	 * @return enum BLACK / WHITE 
+	 */
+	public function getOpponentColor()
+	{
+		return ($this->getPlayerWhoseTurnIsNow()->getColor() == \Enums\Color::WHITE)
+				? \Enums\Color::BLACK
+				: \Enums\Color::WHITE
+		;
+	}
+	
+	/**
 	 * Checks if specified square is under attack by opponent
 	 * 
 	 * @param ChessBoardSquare $chessBoardSquare
@@ -890,5 +990,29 @@ class GameEngine
 		$fieldsUnderAttack = \__::flatten($fieldsUnderAttack);
 		
 		return $chessBoardSquare->isContainedIn($fieldsUnderAttack);
+	}
+	
+	/**
+	 * God Mode, if turned ON, allows developer to bypass all limits/rules and
+	 * make "impossible" moves if requested
+	 * 
+	 * Useful for development, but has to be turned OFF when running in production
+	 * 
+	 * @return bool 
+	 */
+	public function isGodMode()
+	{
+		return $this->godMode;
+	}
+	
+	/**
+	 * Turns GOD Mode on or off
+	 * 
+	 * @see $godMode
+	 * @param type $true_or_false 
+	 */
+	public function setGodMode($true_or_false)
+	{
+		$this->godMode	= (bool) $true_or_false;
 	}
 }
