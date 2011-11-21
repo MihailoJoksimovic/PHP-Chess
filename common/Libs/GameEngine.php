@@ -63,6 +63,10 @@ class GameEngine
 			return false;
 		}
 		
+		// Hide the king
+		$king	= $chessBoardSquare->getChessPiece();
+		$chessBoardSquare->setChessPiece(null);
+		
 		// If every movement is to a field that is under attack by opponent ...
 		// It's check mate :-(
 		
@@ -71,10 +75,36 @@ class GameEngine
 		foreach ($movements AS $movement)
 		{
 			if ($this->isSquareUnderAttack($movement))
+			{	
+				// SHOW ME SOME BUSINESS LOGIC ! ///////////////////////////////
+				
+				// What if ... there is opponent on this field, and if we eat it
+				// this field remains non-attacked ? :-) That definitely gives us one
+				// possible movement :-)
+				
+				if ($movement->getChessPiece() // There is something on this field 
+						&& $movement->getChessPiece()->getColor() == $this->getOpponentColor() // ... and that something is opponent's chess piece
+						&& count($this->getSquareAttackers($movement)) == 0) // ... and there is no one attacking that field
+				{
+					echo "Possible king movement: $movement <br/>";
+					
+					continue;
+				}
+				else
+				{
+					echo "Possible king movement but under attack: $movement <br/>";
+					
+					$moves_under_attack++;
+				}
+			}
+			else
 			{
-				$moves_under_attack++;
+				echo "Possible king movement: $movement <br/>";
 			}
 		}
+		
+		// Return the king
+		$chessBoardSquare->setChessPiece($king);
 		
 		// If number of moves to fields under attack is equal to number of possible moves
 		// our king can't move anywhere and it's check mate :-)
@@ -102,6 +132,9 @@ class GameEngine
 		{
 			return false;
 		}
+		
+		// It's definitely useful to have the square where our King is located
+		$ourKing	= $this->getChessGame()->getChessBoard()->findChessPiece(new ChessPiece(\Enums\ChessPieceType::KING, $this->getPlayerWhoseTurnIsNow()->getColor()));
 			
 		// Moving king under field that is under check by opponent is prohibited
 		if ($fromChessBoardSquare->getChessPiece()->getType() == \Enums\ChessPieceType::KING)
@@ -129,11 +162,33 @@ class GameEngine
 		// to fields that aren't under check !
 		
 		$playerKing = $this->getChessGame()->getChessBoard()->findChessPiece(new ChessPiece(\Enums\ChessPieceType::KING, $this->getPlayerWhoseTurnIsNow()->getColor()));
+		$tryingToEatAttacker	= false;
 		
 		if ($this->isSquareUnderAttack($playerKing) && ! $fromChessBoardSquare->getChessPiece()->equal($playerKing->getChessPiece()))
 		{
-			echo "YOUR KING IS UNDER CHECK ! You have to move king first !!! <br/>";
-			return false;
+			// What if we're trying to eat the piece attacking our king ?
+			// If we do and there's no one else attacking our king - we're good to go ;)
+			
+			$kingAttackers	= $this->getSquareAttackers($ourKing, $this->getOpponentColor());
+			
+			
+			if (count($kingAttackers) > 1) // More than one attacker on our king ... You have to move king definitely !
+			{
+				echo "YOUR KING IS UNDER CHECK ! You have to move king first !!! (More than one attacker)<br/>";
+				return false;
+			}
+			else // Only one attacker on our king ... If we eat it - we're good
+			{
+				if ( ! $toChessBoardSquare->isContainedIn($kingAttackers)) // Ahh ... You're not trying to eat the attacker ... Go away !
+				{
+					echo "YOUR KING IS UNDER CHECK ! You have to move king first !!! <br/>";
+					return false;
+				}
+				else
+				{
+					$tryingToEatAttacker = true;
+				}
+			}
 		}
 		
 		// Check whose turn is it ? If it's white's turn, but we tried playing 
@@ -144,6 +199,26 @@ class GameEngine
 			
 			return false;
 		}
+		
+		// If moving the selected piece will cause our king to be under check -
+		// no way dude !
+		
+		$_selected_piece	= $fromChessBoardSquare->getChessPiece();
+		
+		$fromChessBoardSquare->setChessPiece(null);
+		
+		if ($_selected_piece->getType() != \Enums\ChessPieceType::KING
+				&& count($this->getSquareAttackers($ourKing, $this->getOpponentColor())) > 0 
+				&& $tryingToEatAttacker == false)
+		{
+			echo "Moving this piece will cause our king to be under check ! NO FUCKING WAY ! <br/>";
+			
+			$fromChessBoardSquare->setChessPiece($_selected_piece);
+			
+			return false;
+		}
+		
+		$fromChessBoardSquare->setChessPiece($_selected_piece);
 		
 		
 		// This is more than simple operation -- get all possible movements and
@@ -256,6 +331,28 @@ class GameEngine
 	}
 	
 	/**
+	 * Returns the array of pieces attacking the specified square
+	 * 
+	 * @param ChessBoardSquare $chessBoardSquare 
+	 * @param enum $colorFilter Specify if you want to get only attackers of specified color
+	 * @return array|ChessBoardSquare
+	 */
+	public function getSquareAttackers(ChessBoardSquare $chessBoardSquare, $colorFilter = false)
+	{
+		$return	= array();
+		
+		foreach ($this->getChessGame()->getChessBoard()->getAllChessPieces($colorFilter) AS $chessPiece)
+		{
+			if ($chessBoardSquare->isContainedIn($this->getAllSquaresUnderAttackByChessPiece($chessPiece)))
+			{
+				$return[]	= $chessPiece;
+			}
+		}
+		
+		return $return;
+	}
+	
+	/**
 	 * Returns the array of ALL possible ChessBoardSquare's where KING can move
 	 * from his current position.
 	 * 
@@ -323,7 +420,7 @@ class GameEngine
 			// If there is chess piece of the same color on the destination field
 			// movement isn't possible !
 			
-			if ($this->getChessGame()->getChessBoard()->getSquareByLocation($destinationField->getLocation())->getChessPiece())
+			if ($destinationField->getChessPiece() && $destinationField->getChessPiece()->getColor() == $this->getPlayerWhoseTurnIsNow()->getColor())
 			{
 				unset($movements[$key]);
 				
@@ -406,7 +503,15 @@ class GameEngine
 					}
 					else
 					{
-						// This seems to be our piece, this movement and all further are forbidden
+						// This seems to be our piece. If in attack, this field
+						// is an "possible" move (actually, this field is protected
+						// by our piece ;))
+						
+						if ($attack)
+						{
+							$movements[]	= $destinationField;
+						}
+						
 						break;
 					}
 				}
@@ -595,7 +700,7 @@ class GameEngine
 		return $movements;
 	}
 	
-	public function getAllPossibleMovementsForRook(ChessBoardSquare $chessBoardSquare)
+	public function getAllPossibleMovementsForRook(ChessBoardSquare $chessBoardSquare, $attack = false)
 	{
 		// Rook can move horizontally and vertically on all possible fields
 		
@@ -626,6 +731,12 @@ class GameEngine
 				/* @var $destinationField ChessBoardSquare */
 				$destinationField = $listNode->data;
 				
+				// If destination field is actually the field where we're at - skip that field
+				if ($chessBoardSquare->equal($destinationField))
+				{
+					continue;
+				}
+				
 				// In case that on destination field, we have some chessPiece already:
 				//
 				//	a) If that's our chessPiece, this movement and all further movements in that direction are forbidden
@@ -635,7 +746,7 @@ class GameEngine
 				{
 					if ($chessPiece->getColor() == $opponnentColor)
 					{
-						if ($chessPiece->getType() == \Enums\ChessPieceType::KING)
+						if ($chessPiece->getType() == \Enums\ChessPieceType::KING && ! $attack)
 						{
 							break;
 						}
@@ -650,7 +761,15 @@ class GameEngine
 					}
 					else
 					{
-						// This seems to be our piece, this movement and all further are forbidden
+						// This seems to be our piece. If in attack, this field
+						// is an "possible" move (actually, this field is protected
+						// by our piece ;))
+						
+						if ($attack)
+						{
+							$movements[]	= $destinationField;
+						}
+						
 						break;
 					}
 				}
@@ -667,7 +786,7 @@ class GameEngine
 	
 	
 	
-	public function getAllPossibleMovementsForBishop(ChessBoardSquare $chessBoardSquare)
+	public function getAllPossibleMovementsForBishop(ChessBoardSquare $chessBoardSquare, $attack = false)
 	{
 		// Rook can move diagonally on all possible fields
 		
@@ -706,7 +825,7 @@ class GameEngine
 				{
 					if ($chessPiece->getColor() == $opponnentColor)
 					{
-						if ($chessPiece->getType() == \Enums\ChessPieceType::KING)
+						if ($chessPiece->getType() == \Enums\ChessPieceType::KING && ! $attack)
 						{
 							break;
 						}
@@ -721,7 +840,15 @@ class GameEngine
 					}
 					else
 					{
-						// This seems to be our piece, this movement and all further are forbidden
+						// This seems to be our piece. If in attack, this field
+						// is an "possible" move (actually, this field is protected
+						// by our piece ;))
+						
+						if ($attack)
+						{
+							$movements[]	= $destinationField;
+						}
+						
 						break;
 					}
 				}
@@ -737,7 +864,7 @@ class GameEngine
 	}
 	
 	
-	public function getAllPossibleMovementsForKnight(ChessBoardSquare $chessBoardSquare)
+	public function getAllPossibleMovementsForKnight(ChessBoardSquare $chessBoardSquare, $attack = false)
 	{
 		// Knight can move as follows:
 		// a) Two fields left/right
@@ -901,7 +1028,15 @@ class GameEngine
 					}
 					else
 					{
-						// This seems to be our piece, this movement and all further are forbidden
+						// This seems to be our piece. If in attack, this field
+						// is an "possible" move (actually, this field is protected
+						// by our piece ;))
+						
+						if ($attack)
+						{
+							$movements[]	= $destinationField;
+						}
+						
 						break;
 					}
 				}

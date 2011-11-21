@@ -145,9 +145,18 @@ error_reporting(E_ALL);
 					
 					$engine->setGodMode(isset($_POST['godMode']));
 					
-					if ($game->isGameFinished())
+//					if ($game->isGameFinished())
+//					{
+//						echo "GAME IS FINISHED FFS ! No more playing, sorry :-( <br/>";
+//					}
+					
+					// Is it a check mate ?
+					$king	= $board->findChessPiece(new \Libs\ChessPiece("king", $engine->getPlayerWhoseTurnIsNow()->getColor()));
+					
+					if ($engine->isKingUnderCheckMate($king))
 					{
-						echo "GAME IS FINISHED FFS ! No more playing, sorry :-( <br/>";
+//						$game->setGameFinished(true);
+						echo "YOUR KING CAN'T MOVE !!! CHECK-MATE BITCH ! <br/>";
 					}
 					
 					if ( ! preg_match("/^([a-h]\d){2}$/", $_POST['move']))
@@ -191,7 +200,14 @@ error_reporting(E_ALL);
 								
 								$game->addMovement(new Libs\Movement($chessBoardSquare, $destination));
 								
-								
+								// Is it a check mate now?
+								$king	= $board->findChessPiece(new \Libs\ChessPiece("king", $engine->getPlayerWhoseTurnIsNow()->getColor()));
+					
+								if ($engine->isKingUnderCheckMate($king))
+								{
+			//						$game->setGameFinished(true);
+									echo "YOUR KING CAN'T MOVE !!! CHECK-MATE BITCH ! <br/>";
+								}
 								
 							}
 							else
@@ -204,16 +220,7 @@ error_reporting(E_ALL);
 						}
 						
 						
-						// Is it a check mate ?
-						$king	= $board->findChessPiece(new \Libs\ChessPiece("king", $engine->getPlayerWhoseTurnIsNow()->getColor()));
 						
-						// Is white under check - mate ?
-						
-						if ($engine->isKingUnderCheckMate($king))
-						{
-							$game->setGameFinished(true);
-							echo "YOUR KING CAN'T MOVE !!! CHECK-MATE BITCH ! <br/>";
-						}
 					}
 					
 				}
