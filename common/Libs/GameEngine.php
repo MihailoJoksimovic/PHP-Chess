@@ -179,10 +179,26 @@ class GameEngine
 			}
 			else // Only one attacker on our king ... If we eat it - we're good
 			{
-				if ( ! $toChessBoardSquare->isContainedIn($kingAttackers)) // Ahh ... You're not trying to eat the attacker ... Go away !
+				if ( ! $toChessBoardSquare->isContainedIn($kingAttackers)) // Blah ... You're not trying to eat attacker ....
 				{
-					echo "YOUR KING IS UNDER CHECK ! You have to move king first !!! <br/>";
-					return false;
+					// Are you trying to block the attacker from attacking our king ? :-)
+					
+					$toChessBoardSquare->setChessPiece($fromChessBoardSquare->getChessPiece());
+					$kingStillUnderAttack = $this->isSquareUnderAttack($playerKing);
+					
+					$fromChessBoardSquare->setChessPiece($toChessBoardSquare->getChessPiece());
+					$toChessBoardSquare->setChessPiece(null);
+					
+					if ($kingStillUnderAttack)
+					{
+						echo "YOUR KING IS UNDER CHECK ! You have to move king first !!! <br/>";
+						return false;
+					}
+					else
+					{
+						$tryingToEatAttacker	= true;
+					}
+					
 				}
 				else
 				{
