@@ -52,6 +52,12 @@ class GameEngine
 			return false;
 		}
 		
+		// If king is not under check -- well, it can't be check-mate ;)
+		if ( ! $this->isSquareUnderAttack($chessBoardSquare))
+		{
+			return false;
+		}
+		
 		// Get all possible movements
 		$movements	= $this->getAllPossibleMovements($chessBoardSquare);
 		
@@ -84,7 +90,8 @@ class GameEngine
 				
 				if ($movement->getChessPiece() // There is something on this field 
 						&& $movement->getChessPiece()->getColor() == $this->getOpponentColor() // ... and that something is opponent's chess piece
-						&& count($this->getSquareAttackers($movement)) == 0) // ... and there is no one attacking that field
+						&& count($this->getSquareAttackers($movement, $this->getOpponentColor())) == 0 // ... and no one else is attacking that field :-)
+					)
 				{
 					echo "Possible king movement: $movement <br/>";
 					
@@ -107,9 +114,28 @@ class GameEngine
 		$chessBoardSquare->setChessPiece($king);
 		
 		// If number of moves to fields under attack is equal to number of possible moves
-		// our king can't move anywhere and it's check mate :-)
+		// our king can't move anywhere
+		//
+		// Try looking if there's a move that can save us from check-mate ?
 		
-		return $moves_under_attack == count($movements);
+		if ($moves_under_attack == count($movements))
+		{
+			if (count($this->findKingSaviors()) > 0)
+			{
+				// We have a piece that can save our king from being under check ! ;)
+				
+				return false;
+			}
+			else
+			{
+				// No one can save our king :-(
+				return true;
+			}
+		}
+		else
+		{
+			return false;
+		}
 	}
 	
 	
@@ -1237,6 +1263,76 @@ class GameEngine
 	public function setGodMode($true_or_false)
 	{
 		$this->godMode	= (bool) $true_or_false;
+	}
+	
+	/**
+	 * Finds all pieces that can save our King from being under check-mate
+	 * 
+	 * @return array|ChessBoardSquare
+	 */
+	public function findKingSaviors()
+	{
+		$allPieces	= $this->getChessGame()->getChessBoard()->getAllChessPieces($this->getPlayerWhoseTurnIsNow()->getColor());
+		$ourKing	= $this->getChessGame()->getChessBoard()->findChessPiece(new ChessPiece(\Enums\ChessPieceType::KING, $this->getPlayerWhoseTurnIsNow()->getColor()));
+		
+		$pieces	= array();
+		
+		foreach ($allPieces AS $square)
+		{
+			if ($square->getChessPiece()->getType() == \Enums\ChessPieceType::KING)
+			{
+				continue;
+			}
+			
+			$originalSquarePiece	= $square->getChessPiece();
+			
+			$allPossibleMovements	= \__::flatten(array(
+				$this->getAllPossibleMovements($square)
+				, $this->getAllSquaresUnderAttackByChessPiece($square)
+			));
+			
+			$distinctMoves	= array();
+			
+			// Remove duplicate moves
+			foreach ($allPossibleMovements AS $possibleMovement)
+			{
+				if ( ! $possibleMovement->isContainedIn($distinctMoves))
+				{
+					$distinctMoves[]	= $possibleMovement;
+				}
+			}
+			
+			foreach ($distinctMoves AS $movement)
+			{
+				// Make temp movement, check if king is still under attack, and
+				// revert the movement !
+				
+				$movementOriginalPiece	= $movement->getChessPiece();
+				$movement->setChessPiece($square->getChessPiece());
+				$square->setChessPiece(null);
+				
+				// Is king still under attack ?
+				
+				$kingStillUnderAttack	= $this->isSquareUnderAttack($ourKing);
+				
+				// And revert the virtual move :-)
+				
+				$square->setChessPiece($originalSquarePiece);
+				$movement->setChessPiece($movementOriginalPiece);
+				
+				if ( ! $kingStillUnderAttack)
+				{
+					// Fuck yeah ! We can protect our king !
+					echo "Found king savior :-) From: $square; To: $movement <br/>";
+					
+					$pieces[]	= $square;
+				}
+				
+				
+			}
+		}
+		
+		return $pieces;
 	}
 
 }
