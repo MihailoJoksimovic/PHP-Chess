@@ -198,6 +198,8 @@ error_reporting(E_ALL);
 //									echo "You have just moved to square under attack :-( <br/>";
 //								}
 								
+								$engine->checkForSpecialMovements();
+								
 								$game->addMovement(new Libs\Movement($chessBoardSquare, $destination));
 								
 								// Is it a check mate now?
@@ -224,6 +226,8 @@ error_reporting(E_ALL);
 					}
 					
 				}
+				
+				
 				
 				echo "It's " . strtoupper($engine->getPlayerWhoseTurnIsNow()->getColor()) . " player turn !";
 				

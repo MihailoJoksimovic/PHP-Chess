@@ -1166,4 +1166,40 @@ class GameEngine
 	{
 		$this->godMode	= (bool) $true_or_false;
 	}
+	
+	/**
+	 * Checks for "special" movements and updated table data accordingly:
+	 * 
+	 * 1) Promotion (When Pawn reaches the TOP square)
+	 * 2) Castling (When King exchanges places with Rook)
+	 * 
+	 * If any of these cases IS the case, table will be updated accordingly, so
+	 * no special action is required in the source script
+	 */
+	public function checkForSpecialMovements()
+	{
+		// Check for promotion moves
+		$pawns = $this->getChessGame()
+				->getChessBoard()
+				->findChessPieces(new ChessPiece(\Enums\ChessPieceType::PAWN, $this->getPlayerWhoseTurnIsNow()->getColor()))
+		;
+		
+		$promotionRow	= ($this->getPlayerWhoseTurnIsNow()->getColor() == \Enums\Color::WHITE)
+				? 8
+				: 1
+		;
+		
+		if ( ! empty($pawns))
+		{
+			foreach ($pawns AS $pawn)
+			{
+				if ($pawn->getLocation()->getRow() == $promotionRow)
+				{
+					$pawn->getChessPiece()->setType(\Enums\ChessPieceType::QUEEN);
+					
+					continue;
+				}
+			}
+		}
+	}
 }
