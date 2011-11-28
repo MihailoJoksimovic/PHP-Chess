@@ -184,32 +184,89 @@ error_reporting(E_ALL);
 							
 							$destination = $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates($to_row, $to_column));
 							
-							if ($engine->isMovementAllowed($chessBoardSquare, $destination))
+							$specialMovement	= null;
+							
+							if ($engine->isMovementAllowed($chessBoardSquare, $destination, $specialMovement))
 							{
 								$chessBoardSquare->getChessPiece()->increaseMovements();
 								
-								// Move the piece to the selected position
-								$destination->setChessPiece($chessBoardSquare->getChessPiece());
+								if ($specialMovement)
+								{
+									if ($specialMovement == \Enums\SpecialMovement::CASTLING)
+									{
+										echo "Making castling ! <br/>";
+										if ($chessBoardSquare->getLocation()->getColumn() > $destination->getLocation()->getColumn())
+										{
+											// King is moving to the left
 
-								$chessBoardSquare->setChessPiece(null);
+											$newKingLocation	= $game->getChessBoard()->getSquareByLocation(
+													new \Libs\Coordinates($chessBoardSquare->getLocation()->getRow(), 'c')
+											);
+
+											$newRookLocation	= $game->getChessBoard()->getSquareByLocation(
+													new \Libs\Coordinates($destination->getLocation()->getRow(), 'd')
+											);
+										}
+										else
+										{
+											// King is moving to the left
+
+											$newKingLocation	= $game->getChessBoard()->getSquareByLocation(
+													new \Libs\Coordinates($chessBoardSquare->getLocation()->getRow(), 'g')
+											);
+
+											$newRookLocation	= $game->getChessBoard()->getSquareByLocation(
+													new \Libs\Coordinates($destination->getLocation()->getRow(), 'f')
+											);
+										}
+
+										$king = $chessBoardSquare->getChessPiece();
+										$rook = $destination->getChessPiece();
+
+										$chessBoardSquare->setChessPiece(null);
+										$destination->setChessPiece(null);
+
+										$newKingLocation->setChessPiece($king);
+										$newRookLocation->setChessPiece($rook);
+										
+										$game->addMovement(new Libs\Movement($chessBoardSquare, $destination));
+									}
+									else if ($specialMovement == \Enums\SpecialMovement::PROMOTION)
+									{
+										echo "Promoting PAWN to Queen !<br/>";
+										
+										$destination->setChessPiece(
+												new \Libs\ChessPiece(\Enums\ChessPieceType::QUEEN, $engine->getPlayerWhoseTurnIsNow()->getColor())
+										);
+										
+										$chessBoardSquare->setChessPiece(null);
+										
+										$game->addMovement(new Libs\Movement($chessBoardSquare, $destination));
+										
+									}
+								}
+								else
+								{
+									// Move the piece to the selected position
+									$destination->setChessPiece($chessBoardSquare->getChessPiece());
+
+									$chessBoardSquare->setChessPiece(null);
+									
+									$game->addMovement(new Libs\Movement($chessBoardSquare, $destination));
+									
+								}
 								
-//								if ($engine->isSquareUnderAttack($destination))
-//								{
-//									echo "You have just moved to square under attack :-( <br/>";
-//								}
 								
-								$engine->checkForSpecialMovements();
-								
-								$game->addMovement(new Libs\Movement($chessBoardSquare, $destination));
 								
 								// Is it a check mate now?
 								$king	= $board->findChessPiece(new \Libs\ChessPiece("king", $engine->getPlayerWhoseTurnIsNow()->getColor()));
-					
+
 								if ($engine->isKingUnderCheckMate($king))
 								{
 			//						$game->setGameFinished(true);
 									echo "YOUR KING CAN'T MOVE !!! CHECK-MATE BITCH ! <br/>";
 								}
+								
 								
 							}
 							else

@@ -113,7 +113,7 @@ class GameEngine
 	}
 	
 	
-	public function isMovementAllowed(ChessBoardSquare $fromChessBoardSquare, ChessBoardSquare $toChessBoardSquare)
+	public function isMovementAllowed(ChessBoardSquare $fromChessBoardSquare, ChessBoardSquare $toChessBoardSquare, &$specialMovement = null)
 	{	
 		
 		// Empty squares aren't allowed to be moved ;)
@@ -237,18 +237,90 @@ class GameEngine
 		$fromChessBoardSquare->setChessPiece($_selected_piece);
 		
 		
+		//
+		// Was this a castling request ?
+		//
+		
+		$castlingRequest	= false;
+		
+		if ($fromChessBoardSquare->getChessPiece()->getType() == \Enums\ChessPieceType::KING
+				&& $toChessBoardSquare->getChessPiece()
+				&& $toChessBoardSquare->getChessPiece()->getType() == \Enums\ChessPieceType::ROOK
+				&& $fromChessBoardSquare->getChessPiece()->getTotalMoves() == 0
+				&& $toChessBoardSquare->getChessPiece()->getTotalMoves() == 0)
+		{
+			
+			$castlingRequest	= true;
+			
+			// Make sure there are no chess pieces between the selected rook
+			// and king
+			
+			$columnRange	= range(
+					$fromChessBoardSquare->getLocation()->getColumn()
+					, $toChessBoardSquare->getLocation()->getColumn()
+			);
+			
+			// Exclude the start and end position (that is - king and rook positions)
+			// as we want to check only positions between them
+			
+			array_shift($columnRange);
+			array_pop($columnRange);
+			
+			foreach ($columnRange AS $column)
+			{
+				$location = new Coordinates($fromChessBoardSquare->getLocation()->getRow(), $column);
+				
+				$square	= $this->getChessGame()->getChessBoard()->getSquareByLocation($location);
+				
+				if ($square->getChessPiece())
+				{
+					$castlingRequest	= false; // Nope, castling is not allowed ;)
+					break;
+				}
+			}
+			
+			if ($this->isSquareUnderAttack($toChessBoardSquare))
+			{
+				$castlingRequest	= false;
+			}
+		}
+		
+		if ($castlingRequest)
+		{
+			$specialMovement	= \Enums\SpecialMovement::CASTLING;
+			
+			return true;
+		}
+		
+		
 		// This is more than simple operation -- get all possible movements and
 		// see if requested one is one of them :-)
 		
 		$allowedMovements = $this->getAllPossibleMovements($fromChessBoardSquare);
 		
-		if (empty($allowedMovements))
+		if (empty($allowedMovements) || ! $toChessBoardSquare->isContainedIn($allowedMovements))
 		{
 			return false;
 		}
 		else
-		{
-			return $toChessBoardSquare->isContainedIn($allowedMovements);
+		{	
+			//
+			// Check for promotion moves
+			//
+
+			$promotionRow	= ($this->getPlayerWhoseTurnIsNow()->getColor() == \Enums\Color::WHITE)
+					? 8
+					: 1
+			;
+
+			if ($fromChessBoardSquare->getChessPiece()->getType() == \Enums\ChessPieceType::PAWN
+					&& $toChessBoardSquare->getLocation()->getRow() == $promotionRow)
+			{
+				echo "PROMOTE ME BITCH :-D <br/>";
+				$specialMovement	= \Enums\SpecialMovement::PROMOTION;
+			}
+			
+			return true;
 		}
 	}
 
@@ -1166,40 +1238,5 @@ class GameEngine
 	{
 		$this->godMode	= (bool) $true_or_false;
 	}
-	
-	/**
-	 * Checks for "special" movements and updated table data accordingly:
-	 * 
-	 * 1) Promotion (When Pawn reaches the TOP square)
-	 * 2) Castling (When King exchanges places with Rook)
-	 * 
-	 * If any of these cases IS the case, table will be updated accordingly, so
-	 * no special action is required in the source script
-	 */
-	public function checkForSpecialMovements()
-	{
-		// Check for promotion moves
-		$pawns = $this->getChessGame()
-				->getChessBoard()
-				->findChessPieces(new ChessPiece(\Enums\ChessPieceType::PAWN, $this->getPlayerWhoseTurnIsNow()->getColor()))
-		;
-		
-		$promotionRow	= ($this->getPlayerWhoseTurnIsNow()->getColor() == \Enums\Color::WHITE)
-				? 8
-				: 1
-		;
-		
-		if ( ! empty($pawns))
-		{
-			foreach ($pawns AS $pawn)
-			{
-				if ($pawn->getLocation()->getRow() == $promotionRow)
-				{
-					$pawn->getChessPiece()->setType(\Enums\ChessPieceType::QUEEN);
-					
-					continue;
-				}
-			}
-		}
-	}
+
 }
