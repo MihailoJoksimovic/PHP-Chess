@@ -303,6 +303,11 @@ class GameEngine
 					$castlingRequest	= false; // Nope, castling is not allowed ;)
 					break;
 				}
+				
+				if ($this->isSquareUnderAttack($square))
+				{
+					$castlingRequest	= false; // Sorry, no castling through fields under attack
+				}
 			}
 			
 			if ($this->isSquareUnderAttack($toChessBoardSquare))
