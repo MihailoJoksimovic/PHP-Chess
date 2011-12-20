@@ -37,10 +37,14 @@ class Movement
 	 */
 	private $to;
 	
+	
+	private $chessPiece;
+	
 	public function __construct(ChessBoardSquare $from, ChessBoardSquare $to)
 	{
 		$this->setFrom($from);
 		$this->setTo($to);
+		$this->setChessPiece($to->getChessPiece());
 	}
 	
 	/**
@@ -108,6 +112,27 @@ class Movement
 		$this->to = $to;
 
 	}
+	
+	/**
+	 *
+	 * @return \Libs\ChessPiece
+	 */
+	public function getChessPiece()
+	{
+		return $this->chessPiece;
 
+	}
 
+	public function setChessPiece($chessPiece)
+	{
+		$this->chessPiece = $chessPiece;
+
+	}
+
+	
+	public function __toString()
+	{
+		return $this->from->getLocation()->getColumn() . $this->from->getLocation()->getRow()
+				. $this->to->getLocation()->getColumn() . $this->to->getLocation()->getRow();
+	}
 }

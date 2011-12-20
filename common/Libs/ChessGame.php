@@ -50,6 +50,13 @@ class ChessGame
 	 */
 	private $gameFinished;
 	
+	/**
+	 * Unique 10char game hash
+	 * 
+	 * @var string 
+	 */
+	private $gameHash;
+	
 	public function __construct(Player $whitePlayer, Player $blackPlayer, ChessBoard $chessBoard)
 	{
 		$this->movements	= array();
@@ -149,5 +156,13 @@ class ChessGame
 		$this->gameFinished = (bool) $true_or_false;
 	}
 
-
+	public function getGameHash()
+	{
+		return $this->gameHash;
+	}
+	
+	public function setGameHash($hash)
+	{
+		$this->gameHash	= $hash;
+	}
 }

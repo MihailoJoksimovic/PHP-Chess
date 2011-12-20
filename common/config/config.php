@@ -81,30 +81,9 @@ ini_set('memory_limit', '256M');
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-if (ENVIRONMENT == 'dev')
-{
-    //
-    // On dev env. (usually -- localhost), if we have overriden DB
-    // config files -- we're going to include them.
-    //
-    // Otherwise, we're including the standard ones
-    //
-    
-//    if (file_exists(LOCAL_CONFIG_DIR .'db_config/bh2_db_config.inc.php'))
-//    {
-//	require_once LOCAL_CONFIG_DIR . 'db_config/bh2_db_config.inc.php';
-//    }
-//    else
-//    {
-//	require_once 'externals/db_config_files/bh2_db_config.inc.php';
-//    }
 
+require_once dirname(__FILE__) . '/db_config.php';
 
-}
-else
-{
-//    require_once 'externals/db_config_files/bh2_db_config.inc.php';
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 //

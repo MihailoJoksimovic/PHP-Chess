@@ -79,6 +79,9 @@ error_reporting(E_ALL);
 						else if ($("#moveLocation").val().length == 2)
 						{
 							$("#moveLocation").val($("#moveLocation").val() + col + row);
+							
+							$('#main').submit();
+							
 						}
 					}
 				});
@@ -105,7 +108,7 @@ error_reporting(E_ALL);
 			</tr>
 			
 			<?php 
-			
+				ob_start();
 				$draw = new \Libs\SimpleDrawHelper();
 			
 				
@@ -159,7 +162,7 @@ error_reporting(E_ALL);
 						echo "YOUR KING CAN'T MOVE !!! CHECK-MATE BITCH ! <br/>";
 					}
 					
-					if ( ! preg_match("/^([a-h]\d){2}$/", $_POST['move']))
+					if ( ! isset($_POST['move']) ||  ! preg_match("/^([a-h]\d){2}$/", $_POST['move']))
 					{
 						echo "Invalid movement: {$_POST['move']} !!!<br/>";
 					}
@@ -255,19 +258,6 @@ error_reporting(E_ALL);
 									$game->addMovement(new Libs\Movement($chessBoardSquare, $destination));
 									
 								}
-								
-								
-								
-								// Is it a check mate now?
-								$king	= $board->findChessPiece(new \Libs\ChessPiece("king", $engine->getPlayerWhoseTurnIsNow()->getColor()));
-
-								if ($engine->isKingUnderCheckMate($king))
-								{
-			//						$game->setGameFinished(true);
-									echo "YOUR KING CAN'T MOVE !!! CHECK-MATE BITCH ! <br/>";
-								}
-								
-								
 							}
 							else
 							{
@@ -284,6 +274,81 @@ error_reporting(E_ALL);
 					
 				}
 				
+				// Is it a check mate now?
+				$king	= $board->findChessPiece(new \Libs\ChessPiece("king", $engine->getPlayerWhoseTurnIsNow()->getColor()));
+
+				if ($engine->isKingUnderCheckMate($king))
+				{
+//						$game->setGameFinished(true);
+					echo "YOUR KING CAN'T MOVE !!! CHECK-MATE BITCH ! <br/>";
+				}
+				
+				if ($engine->getPlayerWhoseTurnIsNow()->getColor() == "black")
+				{
+					// AI play :-)
+					$ai = new \Libs\UCI();
+
+					$ai->startGame();
+
+					$move_array = array();
+
+					foreach ($game->getAllMovements() AS $movement)
+					{
+						/* @var $movement \Libs\Movement */
+						$move_array[]	= $movement->getFrom()->getLocation()->getColumn() . $movement->getFrom()->getLocation()->getRow()
+							 . $movement->getTo()->getLocation()->getColumn() . $movement->getTo()->getLocation()->getRow()
+						;
+					}
+					
+					echo "position startpos moves ";
+				
+//				// Export movements
+				foreach ($game->getAllMovements() AS $movement)
+				{
+					/* @var $movement \Libs\Movement */
+					echo $movement . " ";
+					
+				}
+				
+					$ai_result	= $ai->getBestMove($move_array);
+					
+					if (isset($ai_result['bestmove']))
+					{
+						$best_move	= $ai_result['bestmove'];
+						
+						$from	= $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates($best_move[1], $best_move[0]));
+						$to		= $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates($best_move[3], $best_move[2]));
+					
+						$piece	= $from->getChessPiece();
+						$from->setChessPiece(null);
+						
+						$to->setChessPiece($piece);
+						
+						$game->addMovement(new Libs\Movement($from, $to));
+					}
+				}
+				
+				// Is it a check mate now?
+				$king	= $board->findChessPiece(new \Libs\ChessPiece("king", $engine->getPlayerWhoseTurnIsNow()->getColor()));
+
+				if ($engine->isKingUnderCheckMate($king))
+				{
+//						$game->setGameFinished(true);
+					echo "YOUR KING CAN'T MOVE !!! CHECK-MATE ! <br/>";
+				}
+				
+//				echo "position startpos moves ";
+//				
+//				// Export movements
+				foreach ($game->getAllMovements() AS $movement)
+				{
+					/* @var $movement \Libs\Movement */
+					echo $movement . " ";
+					
+				}
+//				
+//				echo "<br/>go infinite<br/>";
+				
 				
 				
 				echo "It's " . strtoupper($engine->getPlayerWhoseTurnIsNow()->getColor()) . " player turn !";
@@ -291,7 +356,7 @@ error_reporting(E_ALL);
 				
 				
 				
-				
+				$_SESSION['game']	= base64_encode(serialize($game));
 				
 				
 				
@@ -316,7 +381,7 @@ error_reporting(E_ALL);
 				
 				
 				
-				
+				ob_clean();
 				
 				$rowNum = 8; $columnNum = 0;
 				foreach ($board->getBoardMatrix() AS $row => $columns):
@@ -369,7 +434,7 @@ error_reporting(E_ALL);
 			
 		</table>
 		
-		<form name="main" method="POST" action="">
+		<form name="main" id='main' method="POST" action="">
 			<input type="text" name="move" id="moveLocation" size="4"></input>
 			<input type="hidden" name="game" value="<?php echo base64_encode(serialize($game)); ?>" />
 			<input type="checkbox" name="godMode" value="1" <?php if(isset($_POST['godMode'])): ?>checked<?php endif; ?> />

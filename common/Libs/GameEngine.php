@@ -93,20 +93,20 @@ class GameEngine
 						&& count($this->getSquareAttackers($movement, $this->getOpponentColor())) == 0 // ... and no one else is attacking that field :-)
 					)
 				{
-					echo "Possible king movement: $movement <br/>";
+//					echo "Possible king movement: $movement <br/>";
 					
 					continue;
 				}
 				else
 				{
-					echo "Possible king movement but under attack: $movement <br/>";
+//					echo "Possible king movement but under attack: $movement <br/>";
 					
 					$moves_under_attack++;
 				}
 			}
 			else
 			{
-				echo "Possible king movement: $movement <br/>";
+//				echo "Possible king movement: $movement <br/>";
 			}
 		}
 		

@@ -263,4 +263,13 @@ class ChessBoardHelper
 		
 		return $return;
 	}
+	
+	
+	public static function removeAllChessPieces(ChessBoard $chessBoard)
+	{
+		foreach ($chessBoard->getAllChessPieces() AS $square)
+		{
+			$square->setChessPiece(null);
+		}
+	}
 }
