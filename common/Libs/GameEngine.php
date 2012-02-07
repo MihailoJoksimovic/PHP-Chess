@@ -62,86 +62,11 @@ class GameEngine
 		}
 		else
 		{
+			\d("Engine reports that there's some possible movement. Not a check mate");
+			
 			return false;
 		}
 		
-		// Get all possible movements
-		$movements	= $this->getAllPossibleMovements($chessBoardSquare);
-		
-		if (empty($movements))
-		{
-			// If no movements are possible, it means that king is surrounded
-			// by his pieces, so ... it's not check-mate for sure
-			return false;
-		}
-		
-		// Hide the king
-		$king	= $chessBoardSquare->getChessPiece();
-		$chessBoardSquare->setChessPiece(null);
-		
-		// If every movement is to a field that is under attack by opponent ...
-		// It's check mate :-(
-		
-		$moves_under_attack	= 0;
-		
-		foreach ($movements AS $movement)
-		{
-			if ($this->isSquareUnderAttack($movement))
-			{	
-				// SHOW ME SOME BUSINESS LOGIC ! ///////////////////////////////
-				
-				// What if ... there is opponent on this field, and if we eat it
-				// this field remains non-attacked ? :-) That definitely gives us one
-				// possible movement :-)
-				
-				if ($movement->getChessPiece() // There is something on this field 
-						&& $movement->getChessPiece()->getColor() == $this->getOpponentColor() // ... and that something is opponent's chess piece
-						&& count($this->getSquareAttackers($movement, $this->getOpponentColor())) == 0 // ... and no one else is attacking that field :-)
-					)
-				{
-					echo "Possible king movement: $movement <br/>";
-					
-					continue;
-				}
-				else
-				{
-					echo "Possible king movement but under attack: $movement <br/>";
-					
-					$moves_under_attack++;
-				}
-			}
-			else
-			{
-				echo "Possible king movement: $movement <br/>";
-			}
-		}
-		
-		// Return the king
-		$chessBoardSquare->setChessPiece($king);
-		
-		// If number of moves to fields under attack is equal to number of possible moves
-		// our king can't move anywhere
-		//
-		// Try looking if there's a move that can save us from check-mate ?
-		
-		if ($moves_under_attack == count($movements))
-		{
-			if (count($this->findKingSaviors()) > 0)
-			{
-				// We have a piece that can save our king from being under check ! ;)
-				
-				return false;
-			}
-			else
-			{
-				// No one can save our king :-(
-				return true;
-			}
-		}
-		else
-		{
-			return false;
-		}
 	}
 	
 	
