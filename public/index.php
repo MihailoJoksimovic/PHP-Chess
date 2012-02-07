@@ -1,450 +1,127 @@
 <?php
-
-require_once dirname(__FILE__) . "/../common/config/config.php";
-if (isset($_GET['reset']))
-{
-	unset($_SESSION['game']); header("Location: index.php");
-}
-
-ini_set('display_errors', 'on');
-error_reporting(E_ALL);
+	require_once dirname(__FILE__) . "/../common/config/config.php";
+	
 ?>
+
 <html>
 	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-
-		<style>
-			.chesspiece
+		<script type="text/javascript" src="js/jquery.js"></script>
+		<title>
+			Incredible Chess Tournament -- by Mihailo Joksimovic
+		</title>
+		
+		<style type="text/css">
+			label
 			{
-				font-size: 55px;
+				width: 150px;
+				display: inline-block;
 			}
-			
-			td 
-			{
-				width: 10%;
-				height: 10%;
-			}
-			
-			td .chessLocationIdentifiers
-			{
-				width: 15px;
-			}
-			
 		</style>
-		
-		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
-		
-		<script type="text/javascript">
-			$(document).ready(function() {
-				var selectedSquare = null;
-				
-				$("td.inactive").hover(
-				function() {
-					if ( ! $(this).hasClass('active'))
-					{
-						$(this).css('background-color', 'red').css('cursor', 'pointer');
-					}
-				},
-				function() {
-					if ( ! $(this).hasClass('active'))
-					{
-						$(this).css('background-color', $(this).attr('originalBgColor'));
-					}
-					
-				});
-				
-				
-				$("td").click(function(){
-					if ($(this).hasClass('active'))
-					{
-						$(this).css('background-color', $(this).attr('originalBgColor'));
-						$(this).removeClass('active').addClass('inactive');
-					}
-					else
-					{
-						$(".active").removeClass('active').addClass("inactive").css('background-color', $(this).attr('originalBgColor'));
-						
-						$(this).addClass("active").removeClass("inactive");
-						
-						$(this).css('background-color', 'blue').css('cursor', 'pointer');
-						
-						var row = $(this).attr("boardRow");
-						var col = $(this).attr("boardColumn");
-						
-						
-						if ($("#moveLocation").val().length == 0 || $("#moveLocation").val().length == 4)
-						{
-							$("#moveLocation").val(col + row);
-						}
-						else if ($("#moveLocation").val().length == 2)
-						{
-							$("#moveLocation").val($("#moveLocation").val() + col + row);
-							
-							$('#main').submit();
-							
-						}
-					}
-				});
-			});
-		</script>
-		
 	</head>
-
+	
 	<body>
-		<table border="1" cellspacing="0" style="width: 100%; height: 80%; text-align: center;">
+		
+		
+		
+		<div style="width:800px; min-height: 200px; margin: 0 auto; margin-top: 5%; border: 1px solid black;">
+			<div style="text-align: center;">
+				<h2>
+					Start New Game
+				</h2>
+			</div>
 			
-			<tr >
-				<td class="chessLocationIdentifiers">
-					
-				</td>
-				<?php foreach (range('a', 'h') AS $columnLetter): ?>
-				<td class="chessLocationIdentifiers">
-					<?php echo $columnLetter; ?>
-				</td>
-				<?php endforeach; ?>
-				<td class="chessLocationIdentifiers">
-					
-				</td>
-			</tr>
 			
-			<?php 
-				ob_start();
-				$draw = new \Libs\SimpleDrawHelper();
-			
+			<?php
+				$errors	= array();
 				
-				
-				if ( ! isset($_POST['game']) && ! isset($_SESSION['game']))
+				if ( ! empty($_POST))
 				{
-					echo "Loading new game !<br/>";
-					$board = new \Libs\ChessBoard();
-				
-					$player1 = new \Libs\Player("white");
-					$player2 = new \Libs\Player("black");
-					$game = new \Libs\ChessGame($player1, $player2, $board);
+					unset($_SESSION['game']);
 					
-					$game->getChessBoard()->settleUpPiecesForNewGame();
-					
-					$engine = new \Libs\GameEngine($game);
-					
-				}
-				else
-				{
-					echo "Continuing existing game :-)<br/>";
-					
-					if (isset($_POST['game']))
+					if ( ! isset($_POST['game_type']) ||  ! in_array($_POST['game_type'], array(1, 2)))
 					{
-						$_SESSION['game'] = $_POST['game'];
-						
-						$game	= unserialize(base64_decode($_POST['game']));
-					}
-					elseif (isset($_SESSION['game']))
-					{
-						$game	= unserialize(base64_decode($_SESSION['game']));
+						$errors[]	= "Please, select a Game Type";
 					}
 					
-					$board = $game->getChessBoard();
-					
-					$engine = new \Libs\GameEngine($game);
-					
-					$engine->setGodMode(isset($_POST['godMode']));
-					
-//					if ($game->isGameFinished())
+//					if ($_POST['wtime'] < 0)
 //					{
-//						echo "GAME IS FINISHED FFS ! No more playing, sorry :-( <br/>";
+//						$errors[]	= "Invalid time limit for white player ! Valid is > 0";
+//					}
+//					
+//					if ($_POST['btime'] < 0)
+//					{
+//						$errors[]	= "Invalid time limit for black player ! Valid is > 0";
 //					}
 					
-					// Is it a check mate ?
-					$king	= $board->findChessPiece(new \Libs\ChessPiece("king", $engine->getPlayerWhoseTurnIsNow()->getColor()));
-					
-					if ($engine->isKingUnderCheckMate($king))
+					if (empty($errors))
 					{
-//						$game->setGameFinished(true);
-						echo "YOUR KING CAN'T MOVE !!! CHECK-MATE BITCH ! <br/>";
-					}
-					
-					if ( ! isset($_POST['move']) ||  ! preg_match("/^([a-h]\d){2}$/", $_POST['move']))
-					{
-						echo "Invalid movement: {$_POST['move']} !!!<br/>";
-					}
-					else
-					{
-						list($from_column, $from_row, $to_column, $to_row) = array(
-							$_POST['move'][0], $_POST['move'][1], $_POST['move'][2], $_POST['move'][3],   
-						);
+						$_SESSION['game_type']	= $_POST['game_type'];
+						$_SESSION['wtime']		= $_POST['wtime'];
+						$_SESSION['btime']		= $_POST['btime'];
+						$_SESSION['ai_skill']		= $_POST['skill'];
 						
-						$chessBoardSquare = $board->getSquareByLocation(new Libs\Coordinates($from_row, $from_column));
+						header("Location: share_screen.php");
 						
-						// Reset all settled flags :-) 
-						foreach ($game->getChessBoard()->findChessPieces(new Libs\ChessPiece(\Enums\ChessPieceType::FLAG, "white")) AS $square)
-						{
-							$square->setChessPiece(null);
-						}
-						
-						/* @var $chessBoardSquare \Libs\ChessBoardSquare */
-						if ($chessBoardSquare && $chessBoardSquare->getChessPiece())
-						{							
-							
-							
-							$destination = $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates($to_row, $to_column));
-							
-							$specialMovement	= null;
-							
-							if ($engine->isMovementAllowed($chessBoardSquare, $destination, $specialMovement))
-							{
-								$chessBoardSquare->getChessPiece()->increaseMovements();
-								
-								if ($specialMovement)
-								{
-									if ($specialMovement == \Enums\SpecialMovement::CASTLING)
-									{
-										echo "Making castling ! <br/>";
-										if ($chessBoardSquare->getLocation()->getColumn() > $destination->getLocation()->getColumn())
-										{
-											// King is moving to the left
-
-											$newKingLocation	= $game->getChessBoard()->getSquareByLocation(
-													new \Libs\Coordinates($chessBoardSquare->getLocation()->getRow(), 'c')
-											);
-
-											$newRookLocation	= $game->getChessBoard()->getSquareByLocation(
-													new \Libs\Coordinates($destination->getLocation()->getRow(), 'd')
-											);
-										}
-										else
-										{
-											// King is moving to the left
-
-											$newKingLocation	= $game->getChessBoard()->getSquareByLocation(
-													new \Libs\Coordinates($chessBoardSquare->getLocation()->getRow(), 'g')
-											);
-
-											$newRookLocation	= $game->getChessBoard()->getSquareByLocation(
-													new \Libs\Coordinates($destination->getLocation()->getRow(), 'f')
-											);
-										}
-
-										$king = $chessBoardSquare->getChessPiece();
-										$rook = $destination->getChessPiece();
-
-										$chessBoardSquare->setChessPiece(null);
-										$destination->setChessPiece(null);
-
-										$newKingLocation->setChessPiece($king);
-										$newRookLocation->setChessPiece($rook);
-										
-										$game->addMovement(new Libs\Movement($chessBoardSquare, $destination));
-									}
-									else if ($specialMovement == \Enums\SpecialMovement::PROMOTION)
-									{
-										echo "Promoting PAWN to Queen !<br/>";
-										
-										$destination->setChessPiece(
-												new \Libs\ChessPiece(\Enums\ChessPieceType::QUEEN, $engine->getPlayerWhoseTurnIsNow()->getColor())
-										);
-										
-										$chessBoardSquare->setChessPiece(null);
-										
-										$game->addMovement(new Libs\Movement($chessBoardSquare, $destination));
-										
-									}
-								}
-								else
-								{
-									// Move the piece to the selected position
-									$destination->setChessPiece($chessBoardSquare->getChessPiece());
-
-									$chessBoardSquare->setChessPiece(null);
-									
-									$game->addMovement(new Libs\Movement($chessBoardSquare, $destination));
-									
-								}
-							}
-							else
-							{
-								echo "INVALID MOVEMENT REQUESTED ! <br/>";
-							}
-							
-							
-							
-						}
-						
-						
-						
-					}
-					
-				}
-				
-				// Is it a check mate now?
-				$king	= $board->findChessPiece(new \Libs\ChessPiece("king", $engine->getPlayerWhoseTurnIsNow()->getColor()));
-
-				if ($engine->isKingUnderCheckMate($king))
-				{
-//						$game->setGameFinished(true);
-					echo "YOUR KING CAN'T MOVE !!! CHECK-MATE BITCH ! <br/>";
-				}
-				
-				if ($engine->getPlayerWhoseTurnIsNow()->getColor() == "black")
-				{
-					// AI play :-)
-					$ai = new \Libs\UCI();
-
-					$ai->startGame();
-
-					$move_array = array();
-
-					foreach ($game->getAllMovements() AS $movement)
-					{
-						/* @var $movement \Libs\Movement */
-						$move_array[]	= $movement->getFrom()->getLocation()->getColumn() . $movement->getFrom()->getLocation()->getRow()
-							 . $movement->getTo()->getLocation()->getColumn() . $movement->getTo()->getLocation()->getRow()
-						;
-					}
-					
-					echo "position startpos moves ";
-				
-//				// Export movements
-				foreach ($game->getAllMovements() AS $movement)
-				{
-					/* @var $movement \Libs\Movement */
-					echo $movement . " ";
-					
-				}
-				
-					$ai_result	= $ai->getBestMove($move_array);
-					
-					if (isset($ai_result['bestmove']))
-					{
-						$best_move	= $ai_result['bestmove'];
-						
-						$from	= $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates($best_move[1], $best_move[0]));
-						$to		= $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates($best_move[3], $best_move[2]));
-					
-						$piece	= $from->getChessPiece();
-						$from->setChessPiece(null);
-						
-						$to->setChessPiece($piece);
-						
-						$game->addMovement(new Libs\Movement($from, $to));
+						exit(0);
 					}
 				}
-				
-				// Is it a check mate now?
-				$king	= $board->findChessPiece(new \Libs\ChessPiece("king", $engine->getPlayerWhoseTurnIsNow()->getColor()));
 
-				if ($engine->isKingUnderCheckMate($king))
-				{
-//						$game->setGameFinished(true);
-					echo "YOUR KING CAN'T MOVE !!! CHECK-MATE ! <br/>";
-				}
-				
-//				echo "position startpos moves ";
-//				
-//				// Export movements
-				foreach ($game->getAllMovements() AS $movement)
-				{
-					/* @var $movement \Libs\Movement */
-					echo $movement . " ";
-					
-				}
-//				
-//				echo "<br/>go infinite<br/>";
-				
-				
-				
-				echo "It's " . strtoupper($engine->getPlayerWhoseTurnIsNow()->getColor()) . " player turn !";
-				
-				
-				
-				
-				$_SESSION['game']	= base64_encode(serialize($game));
-				
-				
-				
-				
-				
-//				$relativeField = $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates(4,'d'));
-//				$relativeField->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::KNIGHT, "white"));
-//				
-//				$relativeField2 = $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates(6,'e'));
-//				$relativeField2->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::KING, "black"));
-//				
-//				$relativeField3 = $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates(4,'f'));
-//				$relativeField3->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::ROOK, "black"));
-//				
-//				$relativeField4 = $game->getChessBoard()->getSquareByLocation(new Libs\Coordinates(6, 'f'));
-//				$relativeField4->setChessPiece(new Libs\ChessPiece(Enums\ChessPieceType::ROOK, 'white'));
-				
-//				foreach($engine->getAllPossibleMovementsForKnight($relativeField) AS $field)
-//				{
-//					$field->setChessPiece(new Libs\ChessPiece(\Enums\ChessPieceType::FLAG, "black"));
-//				}
-				
-				
-				
-				ob_clean();
-				
-				$rowNum = 8; $columnNum = 0;
-				foreach ($board->getBoardMatrix() AS $row => $columns):
-					
-			?>
-			
-			<tr>
-				
-				<td class="chessLocationIdentifiers">
-					<?php echo $rowNum; ?>
-				</td>
-				
-				<?php foreach ($columns AS $boardSquare): ?>
-				<td style="background-color: <?php echo ($boardSquare->getColor() == 'white') ? 'white' : '#dddddd'; ?>" originalBgColor="<?php echo ($boardSquare->getColor() == 'white') ? 'white' : '#dddddd'; ?>" class="inactive" boardRow="<?php echo $boardSquare->getLocation()->getRow(); ?>" boardColumn="<?php echo $boardSquare->getLocation()->getColumn(); ?>">
-					<?php /* @var $boardSquare \Libs\ChessBoardSquare */ 
-					if ( ! is_null($boardSquare->getChessPiece())): ?>
-						<span class="chesspiece">
-							<?php echo $draw->getChessPieceSymbol($boardSquare->getChessPiece()) ?>
-						</span>
-					<?php endif; ?>
-				</td>
-				
-				<?php endforeach; ?>
-				
-				<td style="width: 2%">
-					<?php echo $rowNum; ?>
-				</td>
-				
-			</tr>
-			
-			<?php 
-					$rowNum--;
-				endforeach; 
 			?>
 			
 			
-			<tr class="chessLocationIdentifiers">
-				<td>
-					
-				</td>
-				<?php foreach (range('a', 'h') AS $columnLetter): ?>
-				<td>
-					<?php echo $columnLetter; ?>
-				</td>
-				<?php endforeach; ?>
-				<td>
-					
-				</td>
-			</tr>
+			<?php if ( ! empty($errors)): ?>
+			<?php foreach ($errors AS $error): ?>
+			<p style="color: red;">
+				<?php echo $error ?><br/>	
+			</p>
 			
-		</table>
-		
-		<form name="main" id='main' method="POST" action="">
-			<input type="text" name="move" id="moveLocation" size="4"></input>
-			<input type="hidden" name="game" value="<?php echo base64_encode(serialize($game)); ?>" />
-			<input type="checkbox" name="godMode" value="1" <?php if(isset($_POST['godMode'])): ?>checked<?php endif; ?> />
+			<?php endforeach; ?>
+			<?php endif; ?>
 			
-			<button type="submit">Submit</button>
-		</form>
+			
+			<form name="new_game" method="POST" action="">
+				<label>
+					Game Type:
+				</label>
+				
+				<select name="game_type" onchange="if($(this).val() == 2) { $('#ai_skill').show(); } else { $('#ai_skill').hide(); }">
+					<option value="0">Game Type</option>
+					<option value="1">Player VS Player</option>
+					<option value="2">Player VS Computer</option>
+				</select>
+				
+				<div id="ai_skill" style="display:none;">
+					<label>Computer Skill: </label>
+
+					<select name="skill">
+						<option value="1">Dumb</option>
+						<option value="5">Easy</option>
+						<option value="10">Medium</option>
+						<option value="15">Hard</option>
+						<option value="20">Brutal</option>
+					</select>
+				</div>
+				<br/>
+				
+				<!--
+				
+				<h3>Time Limits</h3>
+				
+				<label>White player:</label>
+				<input type="text" name="wtime" value="0" size="3"/> min.
+				
+				<br/>
+				
+				<label>Black player:</label>
+				<input type="text" name="btime" value="0" size="3" /> min.
+				-->
+				
+				<br/>
+				<br/>
+				
+				<button type="submit">Start new game !</button>
+			</form>
+		</div>
 		
-		<br/>
-		
-		<a href="?reset=1">Reset game</a>
 	</body>
-
 </html>

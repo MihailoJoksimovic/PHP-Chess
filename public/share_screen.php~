@@ -6,8 +6,8 @@ if (isset($_GET['reset']))
 	unset($_SESSION['game']); header("Location: index.php");
 }
 
-//ini_set('display_errors', 'off');
-//error_reporting(0);
+ini_set('display_errors', 'off');
+error_reporting(0);
 ?>
 <html>
 	<head>
@@ -91,7 +91,7 @@ if (isset($_GET['reset']))
 	</head>
 
 	<body>
-		<table border="1" cellspacing="0" style="width: 100%; height: 95%; text-align: center;">
+		<table border="1" cellspacing="0" style="width: 100%; height: 80%; text-align: center;">
 			
 			<tr >
 				<td class="chessLocationIdentifiers">
@@ -163,12 +163,11 @@ if (isset($_GET['reset']))
 //						ob_clean();
 						echo "YOUR KING CAN'T MOVE !!! CHECK-MATE ! <br/>";
 //						ob_flush();
-						die();
 					}
 					
 					if ( ! isset($_POST['move']) ||  ! preg_match("/^([a-h]\d){2}$/", $_POST['move']))
 					{
-						echo "Invalid movement requested !!!<br/>";
+						echo "Invalid movement: {$_POST['move']} !!!<br/>";
 					}
 					else
 					{
@@ -298,35 +297,21 @@ if (isset($_GET['reset']))
 					// AI play :-)
 					$ai = new \Libs\UCI();
 					$ai->setSkillLevel($_SESSION['ai_skill']);
+					$ai->startGame();
 
 					$move_array = array();
 
 					foreach ($game->getAllMovements() AS $movement)
 					{
-						/* @var $movement Movement */
 						if ($movement->isSpecialMove())
 						{
 							if ($movement->getSpecialMove() == 'castle-kingSide')
 							{
-								if ($movement->getFrom()->getLocation()->getRow() == 1)
-								{
-									$move_array[] = "e1g1";
-								}
-								else
-								{
-									$move_array[]	= "e8g8";
-								}
+								$move_array[]	= "O-O";
 							}
 							elseif($movement->getSpecialMove() == 'castle-queenSide')
 							{
-								if ($movement->getFrom()->getLocation()->getRow() == 1)
-								{
-									$move_array[] = "e1c1";
-								}
-								else
-								{
-									$move_array[]	= "e8c8";
-								}
+								$move_array[]	= "O-O-O";
 							}
 						}
 						else
@@ -385,13 +370,6 @@ if (isset($_GET['reset']))
 					echo "YOUR KING CAN'T MOVE !!! CHECK-MATE ! <br/>";
 
 				}
-				else
-				{
-					echo "NOT CHECK MATE !!!! {$engine->getPlayerWhoseTurnIsNow()->getColor()} <br/>";
-					
-					var_dump($engine->getAllPossibleMovementsForKing($king));
-					
-				}
 				
 ////				echo "position startpos moves ";
 ////				
@@ -438,16 +416,6 @@ if (isset($_GET['reset']))
 				
 				
 //				ob_clean();
-				
-				echo "position startpos moves ";
-				foreach (\Libs\GameExporter::getAlgebraicNotation($game) AS $movement)
-				{
-					/* @var $movement \Libs\Movement */
-					echo $movement . " ";
-					
-				}
-				
-				echo "<br>go";
 				
 				$rowNum = 8; $columnNum = 0;
 				foreach ($board->getBoardMatrix() AS $row => $columns):

@@ -52,8 +52,15 @@ class GameEngine
 			return false;
 		}
 		
-		// If king is not under check -- well, it can't be check-mate ;)
-		if ( ! $this->isSquareUnderAttack($chessBoardSquare))
+		$uci = new UCI();
+		
+		if ( ! $uci->getBestMove(\Libs\GameExporter::getAlgebraicNotation($this->getChessGame())))
+		{
+			\d("Engine reports there's not best move ! King under check mate !");
+			
+			return true;
+		}
+		else
 		{
 			return false;
 		}
@@ -65,7 +72,6 @@ class GameEngine
 		{
 			// If no movements are possible, it means that king is surrounded
 			// by his pieces, so ... it's not check-mate for sure
-			
 			return false;
 		}
 		
@@ -93,20 +99,20 @@ class GameEngine
 						&& count($this->getSquareAttackers($movement, $this->getOpponentColor())) == 0 // ... and no one else is attacking that field :-)
 					)
 				{
-//					echo "Possible king movement: $movement <br/>";
+					echo "Possible king movement: $movement <br/>";
 					
 					continue;
 				}
 				else
 				{
-//					echo "Possible king movement but under attack: $movement <br/>";
+					echo "Possible king movement but under attack: $movement <br/>";
 					
 					$moves_under_attack++;
 				}
 			}
 			else
 			{
-//				echo "Possible king movement: $movement <br/>";
+				echo "Possible king movement: $movement <br/>";
 			}
 		}
 		

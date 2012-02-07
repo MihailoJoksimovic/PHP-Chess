@@ -40,11 +40,14 @@ class Movement
 	
 	private $chessPiece;
 	
-	public function __construct(ChessBoardSquare $from, ChessBoardSquare $to)
+	private $specialMove;
+	
+	public function __construct(ChessBoardSquare $from, ChessBoardSquare $to, $specialMove	= null)
 	{
 		$this->setFrom($from);
 		$this->setTo($to);
 		$this->setChessPiece($to->getChessPiece());
+		$this->setSpecialMove($specialMove);
 	}
 	
 	/**
@@ -128,7 +131,25 @@ class Movement
 		$this->chessPiece = $chessPiece;
 
 	}
+	
+	public function isSpecialMove()
+	{
+		return (bool) $this->specialMove;
+	}
+	
+	public function getSpecialMove()
+	{
+		return $this->specialMove;
 
+	}
+
+	public function setSpecialMove($specialMove)
+	{
+		$this->specialMove = $specialMove;
+
+	}
+
+	
 	
 	public function __toString()
 	{

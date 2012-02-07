@@ -57,6 +57,12 @@ class ChessGame
 	 */
 	private $gameHash;
 	
+	/**
+	 *
+	 * @var GameClock
+	 */
+	private $gameClock;
+	
 	public function __construct(Player $whitePlayer, Player $blackPlayer, ChessBoard $chessBoard)
 	{
 		$this->movements	= array();
@@ -64,6 +70,7 @@ class ChessGame
 		$this->setWhitePlayer($whitePlayer);
 		$this->setBlackPlayer($blackPlayer);
 		$this->setChessBoard($chessBoard);
+//		$this->gameClock	= new GameClock();
 	}
 	
 	/**
@@ -164,5 +171,11 @@ class ChessGame
 	public function setGameHash($hash)
 	{
 		$this->gameHash	= $hash;
+	}
+	
+	public function getGameClock()
+	{
+		return $this->gameClock;
+
 	}
 }

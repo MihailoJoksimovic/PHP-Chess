@@ -106,3 +106,8 @@ spl_autoload_register("auto_loader::load");
 require_once APP_PATH . "common/Libs/3rdParty/underscore.php";
 
 require_once APP_PATH . "common/Libs/3rdParty/linklist.class.php";
+
+function d($text)
+{
+	echo "$text <br/>";
+}

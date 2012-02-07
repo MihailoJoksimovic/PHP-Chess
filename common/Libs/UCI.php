@@ -15,12 +15,32 @@ class UCI
 	
 	private $pipes;
 	
+	private $skill	= 10;
+	
+	private static $instance;
+	
+	/**
+	 * 
+	 * @return UCI
+	 */
+	public static function get()
+	{
+		if ( ! self::$instance)
+		{
+			self::$instance = new UCI();
+		}
+		
+		return self::$instance;
+	}
+	
 	public function __construct()
 	{
 		$this->resorce	= null;
+		
+		$this->startGame();
 	}
 	
-	public function startGame()
+	protected function startGame()
 	{
 		if ( ! $this->resorce)
 		{
@@ -34,7 +54,7 @@ class UCI
 			
 			$env = array();
 
-			$this->resorce = proc_open('/usr/local/bin/stockfish', $descriptorspec, $this->pipes, $cwd, $env);
+			$this->resorce = proc_open('nice -n 20 /usr/local/bin/stockfish', $descriptorspec, $this->pipes, $cwd, $env);
 		}
 		
 		if ( ! is_resource($this->resorce))
@@ -49,6 +69,11 @@ class UCI
 		}
 	}
 	
+	public function setSkillLevel($level)
+	{
+		$this->skill	= (int) $level;
+	}
+	
 	/**
 	 *
 	 * @param array $moves Algebraic notation moves
@@ -61,7 +86,7 @@ class UCI
 		
 		if ( ! is_resource($this->resorce))
 		{
-			throw new \Exception("StockFish Resource unavailable! Did you forget to run startGame() ?");
+			$this->startGame();
 		}
 		
 		// $pipes now looks like this:
@@ -72,6 +97,7 @@ class UCI
 
 		fwrite($this->pipes[0], "uci\n");
 		fwrite($this->pipes[0], "ucinewgame\n");
+		fwrite($this->pipes[0], "setoption name Skill Level value {$this->skill}\n");
 		fwrite($this->pipes[0], "isready\n");
 		usleep(500);
 
@@ -94,12 +120,12 @@ class UCI
 			}
 		}
 		
-		if ( ! isset($properties['movetime']))
-		{
-			$go_modifiers	.= "movetime 4000 ";
-		}
+//		if ( ! isset($properties['movetime']))
+//		{
+//			$go_modifiers	.= "movetime 4000 ";
+//		}
 		
-		fwrite($this->pipes[0], "go depth 7 $go_modifiers \n");
+		fwrite($this->pipes[0], "go $go_modifiers \n");
 		fclose($this->pipes[0]);
 		
 		$start_thinking_time	= time();
@@ -109,15 +135,23 @@ class UCI
 			
 			$return = stream_get_contents($this->pipes[1]);
 			
-			echo "$return <br/>";
+//			echo "$return <br/>";
 			
 			if (preg_match("/bestmove\s(?P<bestmove>[a-h]\d[a-h]\d)(\sponder\s(?P<ponder>[a-h]\d[a-h]\d))?/i", $return, $matches))
 			{
 				break;
 			}
+			elseif (preg_match("/bestmove\s\(none\)/i", $return))
+			{
+				$this->shutDown();
+				
+				return null;
+			}
 			else if ((time() - $start_thinking_time) > UCI_MAX_THINK_TIME)
 			{
 				$this->shutDown();
+				
+				\d("UCI says: $return");
 				
 				throw new \Exception("UCI didn't respond after time limit ! Halting !");
 			}
@@ -144,5 +178,7 @@ class UCI
 	{
 		@fclose($this->pipes[0]);
 		@fclose($this->pipes[1]);
+		@fclose($this->pipes[2]);
+		@fclose($this->resorce);
 	}
 }
