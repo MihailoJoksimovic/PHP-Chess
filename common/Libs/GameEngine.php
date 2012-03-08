@@ -137,6 +137,7 @@ class GameEngine
 			}
 			else // Only one attacker on our king ... If we eat it - we're good
 			{
+				echo "Only one attacker, good to hear that";
 				if ( ! $toChessBoardSquare->isContainedIn($kingAttackers)) // Blah ... You're not trying to eat attacker ....
 				{
 					// Are you trying to block the attacker from attacking our king ? :-)
@@ -178,8 +179,10 @@ class GameEngine
 		// no way dude !
 		
 		$_selected_piece	= $fromChessBoardSquare->getChessPiece();
+		$_destination_piece	= $toChessBoardSquare->getChessPiece();
 		
 		$fromChessBoardSquare->setChessPiece(null);
+		$toChessBoardSquare->setChessPiece($_selected_piece);
 		
 		if ($_selected_piece->getType() != \Enums\ChessPieceType::KING
 				&& count($this->getSquareAttackers($ourKing, $this->getOpponentColor())) > 0 
@@ -193,6 +196,7 @@ class GameEngine
 		}
 		
 		$fromChessBoardSquare->setChessPiece($_selected_piece);
+		$toChessBoardSquare->setChessPiece($_destination_piece);
 		
 		
 		//
