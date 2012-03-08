@@ -92,7 +92,8 @@ class GameEngine
 		
 		// It's definitely useful to have the square where our King is located
 		$ourKing	= $this->getChessGame()->getChessBoard()->findChessPiece(new ChessPiece(\Enums\ChessPieceType::KING, $this->getPlayerWhoseTurnIsNow()->getColor()));
-			
+		
+		
 		// Moving king under field that is under check by opponent is prohibited
 		if ($fromChessBoardSquare->getChessPiece()->getType() == \Enums\ChessPieceType::KING)
 		{
@@ -118,7 +119,7 @@ class GameEngine
 		// If current player's king is under check, ONLY king can move, and ONLY
 		// to fields that aren't under check !
 		
-		$playerKing = $this->getChessGame()->getChessBoard()->findChessPiece(new ChessPiece(\Enums\ChessPieceType::KING, $this->getPlayerWhoseTurnIsNow()->getColor()));
+		$playerKing = $ourKing;
 		$tryingToEatAttacker	= false;
 		
 		if ($this->isSquareUnderAttack($playerKing) && ! $fromChessBoardSquare->getChessPiece()->equal($playerKing->getChessPiece()))
@@ -1058,12 +1059,12 @@ class GameEngine
 				//
 				//	a) If that's our chessPiece, this movement and all further movements in that direction are forbidden
 				//	b) If that's opponent's chessPiece  -- movement is possible, but further ones aren't 
-				//	c) If that's opponent's king -- that one and all further are forbidden
+				//	c) If that's opponent's king -- that one and all further are forbidden (unless we're in attack !!!)
 				if (($chessPiece = $destinationField->getChessPiece()))
 				{
 					if ($chessPiece->getColor() == $opponnentColor)
 					{
-						if ($chessPiece->getType() == \Enums\ChessPieceType::KING)
+						if ($chessPiece->getType() == \Enums\ChessPieceType::KING && $attack !== true)
 						{
 							break;
 						}
