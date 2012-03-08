@@ -49,6 +49,11 @@ define("LOG_DIR", VAR_DIR . "log/");
  */
 define("LOCAL_CONFIG_DIR", APP_PATH . "common/config/localhost_config/");
 
+/**
+ * Full path to TEMPLATES directory
+ */
+define("TEMPLATE_DIR", VAR_DIR . "templates/");
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //

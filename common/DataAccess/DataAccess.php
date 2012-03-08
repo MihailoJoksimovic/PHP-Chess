@@ -20,6 +20,6 @@ abstract class DataAccess extends \PDO
 			
 			parent::__construct($dsn, MYSQL_USERNAME, MYSQL_PASSWORD);
 			
-			$this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 	}
 }
