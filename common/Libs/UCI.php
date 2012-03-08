@@ -2,7 +2,11 @@
 
 namespace Libs;
 
-define("UCI_MAX_THINK_TIME", 15);
+define("UCI_MAX_THINK_TIME", 5);
+
+ini_set('memory_limit', '2048M');
+
+echo ini_get('memory_limit');
 
 /**
  * UCI
@@ -47,7 +51,8 @@ class UCI
 			$descriptorspec = array(
 			   0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
 			   1 => array("pipe", "w"),  // stdout is a pipe that the child will write to
-			   2 => array("file", "/tmp/" . uniqid("uci_"), "a") // stderr is a file to write to
+//			   1 => array("file", "/tmp/engine_log", 'w+'),  // stdout is a pipe that the child will write to
+			   2 => array("file", "/tmp/uci_err", "w+") // stderr is a file to write to
 			);
 
 			$cwd = '/tmp';
@@ -101,14 +106,19 @@ class UCI
 		fwrite($this->pipes[0], "isready\n");
 		usleep(500);
 
+		
 		if (empty($moves))
 		{
-			fwrite($this->pipes[0], "position startpos \n");
+			echo "Writing this";
+			fwrite($this->pipes[0], "position startpos\n");
 		}
 		else
 		{
-			fwrite($this->pipes[0], "position startpos moves $moves \n");
+			echo "Writing that";
+			fwrite($this->pipes[0], "position startpos moves $moves\n");
 		}
+		
+		echo "\n\n----------------\n\n$moves\n\n---------------\n\n";
 		
 		$go_modifiers = "";
 		
@@ -120,12 +130,15 @@ class UCI
 			}
 		}
 		
-//		if ( ! isset($properties['movetime']))
-//		{
-//			$go_modifiers	.= "movetime 4000 ";
-//		}
+		if ( ! isset($properties['movetime']))
+		{
+			$go_modifiers	.= "movetime 500 ";
+		}
 		
-		fwrite($this->pipes[0], "go $go_modifiers \n");
+//		echo "go $go_modifiers\n\n<br/>";
+		
+		fwrite($this->pipes[0], "go $go_modifiers\n");
+//		fwrite($this->pipes[0], "go movetime 500\n");
 		fclose($this->pipes[0]);
 		
 		$start_thinking_time	= time();
@@ -135,35 +148,31 @@ class UCI
 			
 			$return = stream_get_contents($this->pipes[1]);
 			
-//			echo "$return <br/>";
-			
 			if (preg_match("/bestmove\s(?P<bestmove>[a-h]\d[a-h]\d)(\sponder\s(?P<ponder>[a-h]\d[a-h]\d))?/i", $return, $matches))
 			{
 				break;
 			}
 			elseif (preg_match("/bestmove\s\(none\)/i", $return))
 			{
-				$this->shutDown();
+//				$this->shutDown();
 				
 				return null;
 			}
 			else if ((time() - $start_thinking_time) > UCI_MAX_THINK_TIME)
 			{
-				$this->shutDown();
-				
-				\d("UCI says: $return");
+//				$this->shutDown();
 				
 				throw new \Exception("UCI didn't respond after time limit ! Halting !");
 			}
 			else
 			{
-				usleep(50);
+				usleep(500);
 				
 				continue;
 			}
 		}
 		
-		$this->shutDown();
+//		$this->shutDown();
 		
 		return $matches;
 		
