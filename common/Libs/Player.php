@@ -4,11 +4,16 @@ namespace Libs;
 
 class Player
 {
+	const HUMAN = 1;
+	const AI = 2;
+	
 	private $id;
 	
 	private $name;
 	
 	private $color;
+	
+	private $type;
 	
 	public function __construct($color)
 	{
@@ -51,6 +56,15 @@ class Player
 
 	}
 
+	public function getType()
+	{
+		return $this->type;
+	}
+	
+	public function setType($value)
+	{
+		$this->type = $value;
+	}
 
 }
 
