@@ -111,7 +111,7 @@ class GameEngine
 			
 			if ($isUnderAttack)
 			{
-				echo "NO KING UNDER FIELD UNDER CHECK ! <br/>";
+//				echo "NO KING UNDER FIELD UNDER CHECK ! <br/>";
 				return false;
 			}
 		}
@@ -132,12 +132,12 @@ class GameEngine
 			
 			if (count($kingAttackers) > 1) // More than one attacker on our king ... You have to move king definitely !
 			{
-				echo "YOUR KING IS UNDER CHECK ! You have to move king first !!! (More than one attacker)<br/>";
+//				echo "YOUR KING IS UNDER CHECK ! You have to move king first !!! (More than one attacker)<br/>";
 				return false;
 			}
 			else // Only one attacker on our king ... If we eat it - we're good
 			{
-				echo "Only one attacker, good to hear that";
+//				echo "Only one attacker, good to hear that";
 				if ( ! $toChessBoardSquare->isContainedIn($kingAttackers)) // Blah ... You're not trying to eat attacker ....
 				{
 					// Are you trying to block the attacker from attacking our king ? :-)
@@ -150,7 +150,7 @@ class GameEngine
 					
 					if ($kingStillUnderAttack)
 					{
-						echo "YOUR KING IS UNDER CHECK ! You have to move king first !!! <br/>";
+//						echo "YOUR KING IS UNDER CHECK ! You have to move king first !!! <br/>";
 						return false;
 					}
 					else
@@ -170,7 +170,7 @@ class GameEngine
 		// with black piece (or vice - versa) -- that is NOT allowed !
 		if ($this->getPlayerWhoseTurnIsNow()->getColor() != $fromChessBoardSquare->getChessPiece()->getColor())
 		{
-			echo "INVALID PLAYER COLOR !!! <br/>";
+//			echo "INVALID PLAYER COLOR !!! <br/>";
 			
 			return false;
 		}
@@ -283,7 +283,7 @@ class GameEngine
 			if ($fromChessBoardSquare->getChessPiece()->getType() == \Enums\ChessPieceType::PAWN
 					&& $toChessBoardSquare->getLocation()->getRow() == $promotionRow)
 			{
-				echo "PROMOTE ME BITCH :-D <br/>";
+//				echo "PROMOTE ME BITCH :-D <br/>";
 				$specialMovement	= \Enums\SpecialMovement::PROMOTION;
 			}
 			
