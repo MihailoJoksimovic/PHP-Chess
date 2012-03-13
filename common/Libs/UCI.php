@@ -109,16 +109,14 @@ class UCI
 		
 		if (empty($moves))
 		{
-			echo "Writing this";
 			fwrite($this->pipes[0], "position startpos\n");
 		}
 		else
 		{
-			echo "Writing that";
 			fwrite($this->pipes[0], "position startpos moves $moves\n");
 		}
 		
-		echo "\n\n----------------\n\n$moves\n\n---------------\n\n";
+//		echo "\n\n----------------\n\n$moves\n\n---------------\n\n";
 		
 		$go_modifiers = "";
 		
