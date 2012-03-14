@@ -4,9 +4,7 @@ namespace Libs;
 
 define("UCI_MAX_THINK_TIME", 5);
 
-ini_set('memory_limit', '2048M');
-
-echo ini_get('memory_limit');
+ini_set('memory_limit', '8000M');
 
 /**
  * UCI
@@ -59,7 +57,7 @@ class UCI
 			
 			$env = array();
 
-			$this->resorce = proc_open('nice -n 20 /usr/local/bin/stockfish', $descriptorspec, $this->pipes, $cwd, $env);
+			$this->resorce = proc_open('/usr/local/bin/stockfish', $descriptorspec, $this->pipes, $cwd, $env);
 		}
 		
 		if ( ! is_resource($this->resorce))
@@ -102,7 +100,7 @@ class UCI
 
 		fwrite($this->pipes[0], "uci\n");
 		fwrite($this->pipes[0], "ucinewgame\n");
-		fwrite($this->pipes[0], "setoption name Skill Level value {$this->skill}\n");
+//		fwrite($this->pipes[0], "setoption name Skill Level value {$this->skill}\n");
 		fwrite($this->pipes[0], "isready\n");
 		usleep(500);
 
@@ -116,7 +114,7 @@ class UCI
 			fwrite($this->pipes[0], "position startpos moves $moves\n");
 		}
 		
-//		echo "\n\n----------------\n\n$moves\n\n---------------\n\n";
+//		echo "\n\n----------------\n\n$moves\n\n---------------\n\n"; die();
 		
 		$go_modifiers = "";
 		
@@ -136,7 +134,6 @@ class UCI
 //		echo "go $go_modifiers\n\n<br/>";
 		
 		fwrite($this->pipes[0], "go $go_modifiers\n");
-//		fwrite($this->pipes[0], "go movetime 500\n");
 		fclose($this->pipes[0]);
 		
 		$start_thinking_time	= time();
@@ -146,7 +143,9 @@ class UCI
 			
 			$return = stream_get_contents($this->pipes[1]);
 			
-			if (preg_match("/bestmove\s(?P<bestmove>[a-h]\d[a-h]\d)(\sponder\s(?P<ponder>[a-h]\d[a-h]\d))?/i", $return, $matches))
+//			echo "\n\n --- $return \n\n";
+			
+			if (preg_match("/bestmove\s(?P<bestmove>[a-h]\d[a-h]\dq?)/i", $return, $matches))
 			{
 				break;
 			}
