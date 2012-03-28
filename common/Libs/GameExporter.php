@@ -9,10 +9,11 @@ namespace Libs;
  */
 class GameExporter
 {
+
 	public static function getAlgebraicNotation(ChessGame $game)
 	{
 		$move_array = array();
-		
+
 		foreach ($game->getAllMovements() AS $movement)
 		{
 			/* @var $movement Movement */
@@ -23,33 +24,37 @@ class GameExporter
 					if ($movement->getFrom()->getLocation()->getRow() == 1)
 					{
 						$move_array[] = "e1g1";
-					}
-					else
+					} else
 					{
-						$move_array[]	= "e8g8";
+						$move_array[] = "e8g8";
 					}
-				}
-				elseif($movement->getSpecialMove() == 'castle-queenSide')
+				} elseif ($movement->getSpecialMove() == 'castle-queenSide')
 				{
 					if ($movement->getFrom()->getLocation()->getRow() == 1)
 					{
 						$move_array[] = "e1c1";
-					}
-					else
+					} else
 					{
-						$move_array[]	= "e8c8";
+						$move_array[] = "e8c8";
 					}
+				} elseif ($movement->getSpecialMove() == \Enums\SpecialMovement::PROMOTION)
+				{
+					$move_array[] = $movement->getFrom()->getLocation()->getColumn() . $movement->getFrom()->getLocation()->getRow()
+							. $movement->getTo()->getLocation()->getColumn() . $movement->getTo()->getLocation()->getRow()
+							. "q"
+					;
 				}
-			}
-			else
+			} else
 			{
 				/* @var $movement \Libs\Movement */
-				$move_array[]	= $movement->getFrom()->getLocation()->getColumn() . $movement->getFrom()->getLocation()->getRow()
-					 . $movement->getTo()->getLocation()->getColumn() . $movement->getTo()->getLocation()->getRow()
+				$move_array[] = $movement->getFrom()->getLocation()->getColumn() . $movement->getFrom()->getLocation()->getRow()
+						. $movement->getTo()->getLocation()->getColumn() . $movement->getTo()->getLocation()->getRow()
 				;
 			}
 		}
-		
+
 		return $move_array;
+
 	}
+
 }
